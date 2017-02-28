@@ -1,5 +1,11 @@
 %{
 #include <stdio.h>
+#define YYSTYPE double
+//#include "lex.yy.c"
+YYSTYPE yylval;
+char *progname;
+int yylex(void);
+void yyerror(char *s);
 %}
 
 %token TMain TInt TIf TWhile TConst ToBracket TcBracket
@@ -15,10 +21,10 @@
 
 
 /* %type <nb> TInt */
-/*%start start     je sais pas ce que ça fait*/
+%start Prg    /*définit l'axiome de départ*/
 
 %%
-Prg: Fonction Prg ;
+Prg: Fonction Prg {printf("Hello\n");};
     | /* epsilon */ ;
 
 Fonction: TInt TId ToParenthesis Args TcParenthesis Body ;
@@ -90,3 +96,12 @@ E : TId
     DeclX : /*epsilon*/
     		| TComma Decl1 DeclX
     		;
+%%
+void yyerror(char *s ){
+  fprintf(stderr,"%s\n",s);
+}
+int main(void){
+  printf("Compilator");
+  yyparse();
+  return 0;
+}
