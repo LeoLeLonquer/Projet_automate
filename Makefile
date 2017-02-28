@@ -18,7 +18,7 @@ compilator : y.tab.o lex.yy.o
 	gcc -c $^
 
 y.pdf : y.dot
-		dot -Tpdf y.dot
+	dot -Tpdf $^ -o $@
 
 y.tab.c y.tab.h y.dot : parserY.y
 		yacc -dvg parserY.y
