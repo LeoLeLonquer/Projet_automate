@@ -4,6 +4,7 @@ SRCS= lexC.l parserY.y
 OBJS= y.tab.o lex.yy.o
 TARGET = compilator y.dot y.pdf y.tab.c y.tab.h lex.yy.c *.o y.output
 
+
 default : compilator y.pdf
 
 all: compilator y.pdf
