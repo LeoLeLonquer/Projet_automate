@@ -1,12 +1,13 @@
 #include "tab_symb.h"
 
+int nb_elts=0;
 
-int rechercher_symbole (char id) { // retourne addr de symbole cherché 
+int rechercher_symbole (char id[16]) { // retourne addr de symbole cherché 
 	int i = nb_elts -1; 
 	int ok = 0; 
 	
 	while ((i >=0) && (ok == 0)) { // on remonte dans le tab car dernière valeur = celle à utiliser 
-		if (Tab_symbs[i].id == id)
+		if (!strcmp(Tab_symbs[i].id,id))
 			ok=1; 
 		else 
 			i-- ; 
@@ -17,7 +18,7 @@ int rechercher_symbole (char id) { // retourne addr de symbole cherché
 
 void ajouter_symbole (Symb symb) {
 	//if (rechercher_symbole(symb) == 0) { 
-		if (nb_elts >= 1024)
+		if (nb_elts >= 1024) {
 			printf("Attention! tableau plein \n") ;  
 		}
 		else { 
@@ -27,12 +28,11 @@ void ajouter_symbole (Symb symb) {
 }
  
 void retirer_symbole (int profondeur) {
-	int i = nb_elts -1; 
+
 	int ok = 0; 
 
-	while (!ok && i >=0) {
-		if (Tab_symb[i].profondeur == profondeur { 
-			Tab_symbs[i] = null;  
+	while (!ok  && nb_elts>0 ) {
+		if (Tab_symbs[nb_elts-1].profondeur == profondeur) { 
 			nb_elts --; 
 		}
 		else 
@@ -41,7 +41,6 @@ void retirer_symbole (int profondeur) {
 }
 
 
-} 
 /*
 // rajouter dans le yacc les bouts de code pour traiter : "{} " --> si a = b+c+d alors
 //  besoin que de deux vars tporaires; alors que si a= b+ (c+(d+e))) alors il faut 
@@ -58,3 +57,4 @@ void retirer_symbole (int profondeur) {
 			}
 dans l'exmple ci-dessus, il faut supprimer b, c et d de la table à la fin du if. 
 // aussi dès qu'on supprime une var tporaire 
+*/
