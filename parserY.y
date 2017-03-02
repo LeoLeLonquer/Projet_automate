@@ -5,9 +5,10 @@
 YYSTYPE yylval;
 char *progname;
 int yylex(void);
-void yyerror(char *s);
+void yyerror(const char *s);
 %}
 
+%error-verbose
 %token TMain TInt TIf TWhile TConst ToBracket TcBracket
 %token ToParenthesis TcParenthesis ToCrochet TcCrochet
 %token TSemicolon TEqual TComma TPlus TMinus TSlash
@@ -24,8 +25,14 @@ void yyerror(char *s);
 %start Prg    /*définit l'axiome de départ*/
 
 %%
-Prg: Fonction Prg {printf("Hello\n");};
+Prg: Fonctions Main {printf("Hello\n");};
     | /* epsilon */ ;
+
+Main : TInt TMain ToParenthesis Args TcParenthesis Body ;
+
+Fonctions : Fonction Fonctions
+			|/* epsilon*/
+			;
 
 Fonction: TInt TId ToParenthesis Args TcParenthesis Body ;
 
@@ -97,7 +104,7 @@ E : TId
     		| TComma Decl1 DeclX
     		;
 %%
-void yyerror(char *s ){
+void yyerror(const char *s ){
   fprintf(stderr,"%s\n",s);
 }
 int main(void){
