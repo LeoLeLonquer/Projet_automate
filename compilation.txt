@@ -1,5 +1,3 @@
-# Projet_automate
-
 lex :
     flex/lex example.l  => lex.yy.c
     gcc  lex.yy.c -o example -lfl (si flex avant)/-ll (si lex avant)  => example (exécutable)
