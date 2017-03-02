@@ -1,15 +1,28 @@
-SRC= main.o
-OBJ=$(SRC:c=.o)
+cc= gcc
+cflags = -Wall -std=gnu99
+SRCS= lexC.l parserY.y
+OBJS= y.tab.o lex.yy.o
+TARGET = compilator y.dot y.pdf y.tab.c y.tab.h lex.yy.c *.o y.output
+
+
+default : compilator y.pdf
+
 all: compilator y.pdf
-y.pdf: y.dot
-        dot -Tpdf y.dot > y.pdf
-y.tab.c y.tab.h y.dot y.output: yacc.y
-        yacc -dvg yacc.y
-lex.yy.c: lex.l y.tab.h
-        flex lex.l
-compilator: t.tab.o lex.yy.o $(OBJ)
-        gcc y.tab.o lex.yy.o $(OBJ) -|| -o compilator
-test: compilator
-        ./compilator < test.c 
 
+clean :
+	rm -f $(TARGET)
 
+compilator : y.tab.o lex.yy.o
+		gcc $^ -o $@ -ll -lm
+
+%.o: %.c
+	gcc -c $^
+
+y.pdf : y.dot
+	dot -Tpdf $^ -o $@
+
+y.tab.c y.tab.h y.dot : parserY.y
+		yacc -dvg parserY.y
+
+lex.yy.c : lexY.l
+		lex lexY.l

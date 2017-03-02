@@ -1,5 +1,7 @@
 %{
-#include <stdio.h>
+#define YYSTYPE double
+#include "y.tab.h"
+extern YYSTYPE yylval;
 %}
 
 
