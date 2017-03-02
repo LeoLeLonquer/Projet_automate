@@ -1,37 +1,45 @@
 #include "tab_symb.h"
 
 
-int rechercher_symbole (Symbs symb) {
-	int i = 0; 
+int rechercher_symbole (char id) { // retourne addr de symbole cherché 
+	int i = nb_elts -1; 
 	int ok = 0; 
 	
-	while ((i < compteur) && (ok == 0)) { 
-		if (Tab_symbs[i].id == symb.id)
+	while ((i >=0) && (ok == 0)) { // on remonte dans le tab car dernière valeur = celle à utiliser 
+		if (Tab_symbs[i].id == id)
 			ok=1; 
 		else 
-			i++ ; 
+			i-- ; 
 	}
 	return i; 
 }
 
 
-void ajouter_symbole (Symbs symb) {
+void ajouter_symbole (Symb symb) {
 	//if (rechercher_symbole(symb) == 0) { 
-		if (compteur >= 1024)
+		if (nb_elts >= 1024)
 			printf("Attention! tableau plein \n") ;  
 		}
 		else { 
-			Tab_symbs[compteur] = symb; 
-			compteur++ ; 	
+			Tab_symbs[nb_elts] = symb; 
+			nb_elts ++ ; 
 		}
 }
  
-void retirer_symbole (Symbs symb) {
+void retirer_symbole (int profondeur) {
+	int i = nb_elts -1; 
+	int ok = 0; 
 
-	compteur --; 
+	while (!ok && i >=0) {
+		if (Tab_symb[i].profondeur == profondeur { 
+			Tab_symbs[i] = null;  
+			nb_elts --; 
+		}
+		else 
+			ok = 1; 
+	}
 }
 
-int lire (Symbs symb) { // ex: lire(a) renvoie l'adresse de a 
 
 } 
 /*
