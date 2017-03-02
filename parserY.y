@@ -92,17 +92,17 @@ E : TId
     ;
 
 
-    Affect: TId TEqual E TSemicolon ;
+Affect: TId TEqual E TSemicolon ;
 
-    Decl : TInt Decl1 DeclX TSemicolon ;
+Decl : TInt Decl1 DeclX TSemicolon ;
 
-    Decl1 : TId
-    		| TId TEqual E
-    		;
+Decl1 : TId
+    	| TId TEqual E
+    	;
 
-    DeclX : /*epsilon*/
-    		| TComma Decl1 DeclX
-    		;
+DeclX : /*epsilon*/
+  		| TComma Decl1 DeclX
+  		;
 %%
 void yyerror(const char *s ){
   fprintf(stderr,"%s\n",s);
