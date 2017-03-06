@@ -5,9 +5,9 @@ OBJS= y.tab.o lex.yy.o
 TARGET = compilator y.dot y.pdf y.tab.c y.tab.h lex.yy.c *.o y.output
 
 
-default : compilator y.pdf
+default : compilator
 
-all: compilator y.pdf
+all: compilator 
 
 clean :
 	rm -f $(TARGET)

@@ -40,8 +40,7 @@ void retirer_symbole (int profondeur) {
 	}
 }
 
-void initialiser_symbole(char id[16]){
-	int pos = rechercher_symbole(id);
+void initialiser_symbole(int pos){
 	Tab_symbs[pos].init=1;
 }
 

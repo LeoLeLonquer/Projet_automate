@@ -31,7 +31,7 @@ extern YYSTYPE yylval;
 "and"  {return TAnd ;}
 "or"  {return TOr ;}
 "#include"  {return TInclude ;}
-[0-9]+  {return TNumber ;}
-[a-zA-Z][a-zA-Z0-9]*  {return TId ;}
+[0-9]+  {yylval= atoi(yytext); return TNumber ;}
+[a-zA-Z][a-zA-Z0-9]*  {yylval=strdup(yytext); return TId ;}
 [ \t]  {;} ; /* ignore les blancs et tabulations */
 %%

@@ -15,4 +15,4 @@ extern int nb_elts;
 void ajouter_symbole (Symb symb) ; //ajoute un symbole
 void retirer_symbole (int profondeur) ; // retire tous les symboles d'une même profondeur
 int rechercher_symbole (char id[16]); // renvoie l'id du symbole dans le tableau? un bool?
-void initialiser_symbole(char id[16]); //modifie la valeur d'initialisation
+void initialiser_symbole(int pos); //modifie la valeur d'initialisation

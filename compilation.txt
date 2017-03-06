@@ -15,3 +15,8 @@ Graph virtualize :
 Combiner lex et yacc :
   gcc y.tab.o lex.yy.o -o compilator -ll -lm/ly(pour exclure problème yyerror)
    => compilator 
+
+
+tester la table des symboles :
+	gcc -c tab_symb.c
+	gcc test_tab_symb.c tab_symb.o -o yolo
