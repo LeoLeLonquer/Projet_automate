@@ -1,7 +1,5 @@
 %{
-#define YYSTYPE double
 #include "y.tab.h"
-extern YYSTYPE yylval;
 %}
 
 
@@ -31,7 +29,7 @@ extern YYSTYPE yylval;
 "and"  {return TAnd ;}
 "or"  {return TOr ;}
 "#include"  {return TInclude ;}
-[0-9]+  {yylval= atoi(yytext); return TNumber ;}
-[a-zA-Z][a-zA-Z0-9]*  {yylval=strdup(yytext); return TId ;}
+[0-9]+  {yylval.number= atoi(yytext); return TNumber ;}
+[a-zA-Z][a-zA-Z0-9]*  {yylval.string=strdup(yytext); return TId ;}
 [ \t]  {;} ; /* ignore les blancs et tabulations */
 %%
