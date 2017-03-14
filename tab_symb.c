@@ -2,29 +2,33 @@
 
 int nb_elts=0;
 
-int rechercher_symbole (char id[16]) { // retourne addr de symbole cherché
+int rechercher_symbole(char id[16]) { // retourne addr de symbole cherché
 	int i = nb_elts -1;
 	int ok = 0;
 
 	while ((i >=0) && (ok == 0)) { // on remonte dans le tab car dernière valeur = celle à utiliser
 		if (!strcmp(Tab_symbs[i].id,id))
-			ok=1;
+		ok=1;
 		else
-			i-- ;
+		i-- ;
 	}
 	return i;
 }
 
 
-void ajouter_symbole (Symb symb) {
+void ajouter_symbole (char id[16], int init, int prof) {
 	//if (rechercher_symbole(symb) == 0) {
-		if (nb_elts >= 1024) {
-			printf("Attention! tableau plein \n") ;
-		}
-		else {
-			Tab_symbs[nb_elts] = symb;
-			nb_elts ++ ;
-		}
+	struct Symb symb;
+	strcpy(symb.id,id);
+	symb.init=init;
+	symb.profondeur=prof;
+	if (nb_elts >= 1024) {
+		printf("Attention! tableau plein \n") ;
+	}
+	else {
+		Tab_symbs[nb_elts] = symb;
+		nb_elts ++ ;
+	}
 }
 
 void retirer_symbole (int profondeur) {
@@ -36,7 +40,7 @@ void retirer_symbole (int profondeur) {
 			nb_elts --;
 		}
 		else
-			ok = 1;
+		ok = 1;
 	}
 }
 
@@ -51,13 +55,13 @@ void initialiser_symbole(int pos){
 // profondeur = nombre d'accolades avant:
 // main { int a ; if..{{{ int b ; --> a = profondeur 0, b = profondeur 3
 // il faut supprimer les symboles de la table une fois accolade fermée à la pronfdeur de blc de l'accolade --> fin de bloc
-	ex: 	main (){
-				int a ;
-					if (truc) {
-						int b, c, d ;
-						b = c+d ;
-				}
-			}
+ex: 	main (){
+int a ;
+if (truc) {
+int b, c, d ;
+b = c+d ;
+}
+}
 dans l'exmple ci-dessus, il faut supprimer b, c et d de la table à la fin du if.
 // aussi dès qu'on supprime une var tporaire
 */

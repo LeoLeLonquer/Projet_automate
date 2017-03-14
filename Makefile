@@ -1,18 +1,18 @@
 cc= gcc
 cflags = -Wall -std=gnu99
-SRCS= lexC.l parserY.y
-OBJS= y.tab.o lex.yy.o
+SRCS= lexC.l parserY.y tab_symb.c
+OBJS= y.tab.o lex.yy.o tab_symb.o
 TARGET = compilator y.dot y.pdf y.tab.c y.tab.h lex.yy.c *.o y.output
 
 
 default : compilator
 
-all: compilator 
+all: compilator
 
 clean :
 	rm -f $(TARGET)
 
-compilator : y.tab.o lex.yy.o
+compilator : $(OBJS)
 		gcc $^ -o $@ -ll -lm
 
 %.o: %.c
