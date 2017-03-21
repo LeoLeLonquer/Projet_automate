@@ -19,4 +19,8 @@ Combiner lex et yacc :
 
 tester la table des symboles :
 	gcc -c tab_symb.c
-	gcc test_tab_symb.c tab_symb.o -o yolo
+	gcc test_tab_symb.c tab_symb.o -o test_symb
+
+tester la table des branchements  :
+	gcc -c tab_branche.c
+	gcc test_tab_branche.c tab_branche.o -o test_branche

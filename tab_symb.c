@@ -32,9 +32,7 @@ void ajouter_symbole (char id[16], int init, int prof) {
 }
 
 void retirer_symbole (int profondeur) {
-
 	int ok = 0;
-
 	while (!ok  && nb_elts>0 ) {
 		if (Tab_symbs[nb_elts-1].profondeur == profondeur) {
 			nb_elts --;

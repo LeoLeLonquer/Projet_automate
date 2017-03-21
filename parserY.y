@@ -8,18 +8,18 @@ void yyerror(const char *s);
 
 static int prof=0;
 
-int expr_arith(char instr[16],int adr_retour,int adr1,int adr2){
+int expr_arith(char instr[16],int dollardollar,int dollar1,int dollar2){
   int res;
-  printf("LOAD R0 %d\n", adr1);
-  printf("LOAD R1 %d\n", adr2);
-  if (strcmp(instr,"ADD")==0){res=adr1+adr2;printf ("ADD R0 R0 R1\n");}
-  else if (strcmp(instr,"SUB")==0){res=adr1-adr2;printf ("SUB R0 R0 R1\n");}
-  else if (strcmp(instr,"DIV")==0){res=adr1*adr2;printf ("DIV R0 R0 R1\n");}
-  else if (strcmp(instr,"MUL")==0){res=adr1/adr2;printf ("MUL R0 R0 R1\n");}
-  else if (strcmp(instr,"OR")==0){res=(adr1||adr2);printf ("OR R0 R0 R1\n");}
-  else if (strcmp(instr,"AND")==0){res=(adr1&&adr2);printf ("AND R0 R0 R1\n");}
-  else if (strcmp(instr,"EQU")==0){res=(adr1==adr2);printf ("EQU R0 R0 R1\n");}
-  printf("STORE %d R0\n", adr_retour);
+  printf("LOAD R0 %d\n", dollar1);
+  printf("LOAD R1 %d\n", dollar2);
+  if (strcmp(instr,"ADD")==0){res=dollar1+dollar2;printf ("ADD R0 R0 R1\n");}
+  else if (strcmp(instr,"SUB")==0){res=dollar1-dollar2;printf ("SUB R0 R0 R1\n");}
+  else if (strcmp(instr,"DIV")==0){res=dollar1*dollar2;printf ("DIV R0 R0 R1\n");}
+  else if (strcmp(instr,"MUL")==0){res=dollar1/dollar2;printf ("MUL R0 R0 R1\n");}
+  else if (strcmp(instr,"OR")==0){res=(dollar1||dollar2);printf ("OR R0 R0 R1\n");}
+  else if (strcmp(instr,"AND")==0){res=(dollar1&&dollar2);printf ("AND R0 R0 R1\n");}
+  else if (strcmp(instr,"EQU")==0){res=(dollar1==dollar2);printf ("EQU R0 R0 R1\n");}
+  printf("STORE %d R0\n", dollardollar);
   return  res;
 }
 
@@ -108,14 +108,17 @@ ParamsNext : Param
 Param : Exp
       ;
 
-If : TIf ToParenthesis Exp TcParenthesis Body {jump}
-    | TIf ToParenthesis Exp TcParenthesis Body TElse Body {}
+If : TIf ToParenthesis Exp TcParenthesis Body {ajouter_branche();
+                                               printf("\n");
+                                              }
+    | TIf ToParenthesis Exp TcParenthesis Body TElse Body {ajouter_instr();
+                                                           printf("\n");}
     ;
 
 While : TWhile ToParenthesis Exp TcParenthesis Body
       ;
 
-Exp : TId {$$=0;}
+Exp : TId {$$=(int)$1;} //TODO gération des TId
     | TNumber {$$=$1;}
     | Exp TPlus Exp { $$ = expr_arith("ADD",$$,$1,$3);}
     | Exp TMinus Exp {  $$= expr_arith("SUB", $$,$1, $3);}
@@ -135,7 +138,7 @@ Affect: TId TEqual Exp TSemicolon
         else {
           initialiser_symbole(i);
           printf("AFC R0 %d\n", $3);
-          printf("STORE %d RO\n",$1);
+          /*printf("STORE %d RO\n",$1);*/
           }
       }
       ;
@@ -143,7 +146,9 @@ Affect: TId TEqual Exp TSemicolon
 Decl : TInt Decl1 DeclX TSemicolon ;
 
 Decl1 : TId {ajouter_symbole($1,0,prof);}
-    	| TId TEqual Exp {ajouter_symbole($1,1,prof);}
+    	| TId TEqual Exp {ajouter_symbole($1,1,prof);
+                        printf("AFC R0 %d\n", $3);
+                      /*  printf("STORE %d RO\n",$1);*/}
     	;
 
 DeclX : /*epsilon*/

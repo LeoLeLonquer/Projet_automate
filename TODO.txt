@@ -1,0 +1,11 @@
+-Faire la table des instructions qui nous servira pour sauvegarder les blocs if et les blocs while
+
+-Demander dans Exp: TId où retrouve-t-on la valeur de TId?
+
+
+
+Problème avec le token Main
+	résolution en ajoutant une fonction spéciale main dans la grammaire
+	=> problème de shiftreduce
+
+problème de reconnaissance int c = (a+b)
