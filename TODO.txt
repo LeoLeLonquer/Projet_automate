@@ -19,6 +19,7 @@ Pour le tableau de branchement :
                printf("\n");
                increment_ligne(1);
 		increment_instr(prof,1);
+		porf++;
 	-dans les corps de blocs, à chaque fois qu’une instruction est printé, utiliser
 		increment_ligne(?)
 		increment_instr(prof,?)
