@@ -36,15 +36,16 @@ int main (void) {
 	retirer_branche(3);
 	retirer_branche(2);
 	retirer_branche(1);
+	retirer_branche(0);
  	int indice;
 	int adr;
 	int nb_instr;
 
-	indice=rechercher_element_tab_ended(8);
+	indice=rechercher_element_tab_ended(5);
 	adr= get_adr_tab_ended(indice);
 	nb_instr=get_nb_instr_tab_ended(indice);
 
-	printf("adr : %d ; nb_instr : %d",adr,nb_instr);
+	printf("adr : %d ; nb_instr : %d\n",adr,nb_instr);
 
 
 
