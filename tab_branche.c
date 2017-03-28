@@ -1,7 +1,7 @@
 #include "tab_branche.h"
 
 int sommet_tab_branche=0;
-int sommet_tab_ended=0;
+int index_tab_ended=0;
 
 void ajouter_branche (int ligne, int nb_instr,int prog_prof) {
   struct Branche branche;
@@ -18,7 +18,7 @@ void ajouter_branche (int ligne, int nb_instr,int prog_prof) {
 }
 
 void retirer_branche (int prog_prof) {
-  if (get_nb_instr(prog_prof)!=0)
+  if (get_nb_instr_tab_branche(prog_prof)!=0)
     save_branche();
   sommet_tab_branche --;
 }
@@ -34,15 +34,32 @@ void increment_instr(int prog_prof, int nb){
 }
 
 
-int get_ligne(int prog_prof){
+int get_ligne_tab_branche( int prog_prof){
   return Tab_branche[prog_prof].adr;
 }
 
-int get_nb_instr(int prog_prof){
+int get_nb_instr_tab_branche( int prog_prof){
   return Tab_branche[prog_prof].nb_instruct;
 }
 
+int rechercher_element_tab_ended(int adr){
+	int i=0;
+	while(Tab_ended[i].adr!=adr){
+		i++;
+	}
+	return i;
+}
+
+int get_nb_instr_tab_ended( int i){
+	return Tab_ended[i].nb_instruct;
+}
+
+int get_adr_tab_ended( int i){
+	return Tab_ended[i].adr;
+}
+
+
 void save_branche(){
-  Tab_ended[sommet_tab_ended]=Tab_branche[sommet_tab_branche];
-  sommet_tab_ended++;
+  Tab_ended[index_tab_ended]=Tab_branche[sommet_tab_branche];
+  index_tab_ended++;
 }
