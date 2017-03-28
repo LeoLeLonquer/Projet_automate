@@ -1,50 +1,48 @@
 #include "tab_branche.h"
 
-int indice_tab_ended=0;
-int ligne=0;
-int prog_prof=0;
+int sommet_tab_branche=0;
+int sommet_tab_ended=0;
 
-void ajouter_branche () {
+void ajouter_branche (int ligne, int nb_instr,int prog_prof) {
   struct Branche branche;
   branche.adr=ligne;
-  branche.nb_instruct=0;
-  branche.prof=prog_prof;
+  branche.nb_instruct=nb_instr;
+  branche.prof=prog_prof+1;
   if (prog_prof >= 1024) {
     printf("Attention! Tableau des branchements plein \n") ;
   }
   else {
-    Tab_branche[prog_prof] = branche ;
-    prog_prof ++;
+    Tab_branche[sommet_tab_branche] = branche ;
+    sommet_tab_branche ++;
   }
 }
 
-void retirer_branche () {
-  save_branche();
-  prog_prof --;
+void retirer_branche (int prog_prof) {
+  if (get_nb_instr(prog_prof)!=0)
+    save_branche();
+  sommet_tab_branche --;
 }
 
-void increment_instr(int nb){
+void increment_instr(int prog_prof, int nb){
   int i=prog_prof;
-
-  while(prog_prof>Tab_branche[i].prof){
-    Tab_branche[i].nb_instruct=Tab_branche[i].nb_instruct + nb;
-    i--;
+  if (prog_prof!=0){
+    while(prog_prof>Tab_branche[i].prof && i>0){
+      Tab_branche[i].nb_instruct=Tab_branche[i].nb_instruct + nb;
+      i--;
+    }
   }
 }
 
-void increment_ligne(int nb){
-  ligne=ligne+nb;
+
+int get_ligne(int prog_prof){
+  return Tab_branche[prog_prof].adr;
 }
 
-int get_ligne(int prof){
-  return Tab_branche[prof].adr;
-}
-
-int get_nb_instr(int prof){
-  return Tab_branche[prof].nb_instruct;
+int get_nb_instr(int prog_prof){
+  return Tab_branche[prog_prof].nb_instruct;
 }
 
 void save_branche(){
-  Tab_ended[indice_tab_ended]=Tab_branche[prog_prof];
-  indice_tab_ended++;
+  Tab_ended[sommet_tab_ended]=Tab_branche[sommet_tab_branche];
+  sommet_tab_ended++;
 }

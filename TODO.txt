@@ -9,3 +9,18 @@ Problème avec le token Main
 	=> problème de shiftreduce
 
 problème de reconnaissance int c = (a+b)
+
+
+
+
+Pour le tableau de branchement :
+	-dans les débuts de branchement (TIf, While…) mettre les instructions
+		ajouter_branche();
+               printf("\n");
+               increment_ligne(1);
+		increment_instr(prof,1);
+	-dans les corps de blocs, à chaque fois qu’une instruction est printé, utiliser
+		increment_ligne(?)
+		increment_instr(prof,?)
+	-à la fin des branchements 
+		utiliser retirer_branche(prof);
