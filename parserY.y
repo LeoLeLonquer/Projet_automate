@@ -90,15 +90,17 @@ ListeArgs: TComma Arg ListeArgs
 Arg : TInt TId
     ;
 
-Body : ToBracket Instrs TcBracket { retirer_branche(prof);
-																	prof --;}
-     ;
 
-BodyElse :  ToBracket Instrs TcBracket {retirer_branche(prof);
-										ajouter_branche(ligne,0,prof);
-										fprintf(out,"\n");
-									  increment_ligne(1);
-		  							increment_instr(prof,1);
+
+
+Body :  ToBracket Instrs TcBracket // peut-être à factoriser avec BodyIf
+		;
+
+BodyIf : ToBracket Instrs TcBracket {retirer_branche(prof);
+										ajouter_branche(ligne,1,prof);
+										fprintf(out,"JMP                   \n");
+									  	increment_ligne(1);
+		  								increment_instr(prof,1);
 										//prof --;
 										}
 		;
@@ -138,25 +140,28 @@ ParamsNext : Param
 Param : Exp
       ;
 
-If : TIf ToParenthesis Exp TcParenthesis Body {ajouter_branche(ligne,0,prof);
-                                               fprintf(out,"\n");
-												increment_ligne(1);
-												increment_instr(prof,1);
-												prof++;
-												}
-    | TIf ToParenthesis Exp TcParenthesis BodyElse TElse Body {ajouter_branche(ligne,0,prof);
-                                                           fprintf(out,"\n");
-															increment_ligne(1);
-															increment_instr(prof,1);
-														  prof++;}
+If : TIf {	printf("Voici la ligne : %d",ligne);
+			ajouter_branche(ligne,1,prof);
+            fprintf(out,"JMP            \n");
+			increment_ligne(1);
+			increment_instr(prof,1);
+			prof++;
+		}
+ 	ToParenthesis Exp TcParenthesis BodyIf Else
+
+Else : {retirer_branche(prof);
+		prof--;}
+    | TElse Body {retirer_branche(prof);
+				  prof--;}
     ;
 
-While : TWhile ToParenthesis Exp TcParenthesis BodyWhile {ajouter_branche(ligne,0,prof);
-													 fprintf(out,"\n");
-												    increment_ligne(1);
-		  											increment_instr(prof,1);
-														prof++;
-													}
+While : TWhile {ajouter_branche(ligne,1,prof);
+		        fprintf(out,"JMP             \n");
+			    increment_ligne(1);
+				increment_instr(prof,1);
+				prof++;
+				}
+		ToParenthesis Exp TcParenthesis BodyWhile
 
       ;
 
@@ -202,21 +207,49 @@ fprintf(stderr,"%s\n",s);
 int main(void){
 	out = fopen("./out.asm","w+");
 	yyparse();
+
+	printf("********************Fin parsage********************\n");
 	int lig=0;
 	int indice;
 	int nb_instr;
 	int adr;
- 	char * s;
+	int flag=0;
+ 	char * s=malloc(2000+1);
+	printf("Ready 1\n") ;
+	//fgets(s,20, out);
+	//printf("%s", s);
+	rewind(out);
+	//fseek(out,0,0);
+	printf("Ready 2\n") ;
+	//fgets(s,2000, out);
+	//printf("%s", s);
+
+
+
 	while (fgets(s,20, out)!=NULL){
-		while(s!="\n"){
-				fgets(s,20, out);
+				printf("Je suis dans le 1er While (fin)\n") ;
+		flag=0;
+		while(s[0]!='J' && !flag){
 				lig++;
+				if (fgets(s,20, out)==NULL)
+					flag=1;
+			printf("Je suis dans le 2e While (fin) ligne %d\n", lig) ;
 		}
-		indice=rechercher_element_tab_ended(lig);
-		adr= get_adr_tab_ended(indice);
-		nb_instr=get_nb_instr_tab_ended(indice);
-		fprintf(out,"%d : JMP %d",adr, adr+nb_instr);
-		fflush(out);
+		if (!flag) {
+			fseek(out,-sizeof("JMP            \n") , SEEK_CUR);
+			printf("sortie du 2e while, lig = %d\n", lig) ;
+			indice=rechercher_element_tab_ended(lig); //*************************** erreur ici?
+			printf("indice ok\n") ;
+			adr= get_adr_tab_ended(indice);
+			printf("voici adr : %d\n", adr);
+			printf("adr ok\n") ;
+			nb_instr=get_nb_instr_tab_ended(indice);
+			printf("nb_instr ok\n") ;
+			//fprintf(out,"\nYO\n");
+			fprintf(out,"\n%d : JMP %d",adr, adr+nb_instr);
+			printf("JUMP FAIT!! \n") ;
+			fflush(out);
+		}
 	}
 	fclose(out);
 	return 0;

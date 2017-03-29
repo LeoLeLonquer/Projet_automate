@@ -45,9 +45,9 @@ int get_nb_instr_tab_branche( int prog_prof){
   return Tab_branche[prog_prof].nb_instruct;
 }
 
-int rechercher_element_tab_ended(int adr){
+int rechercher_element_tab_ended(int lig){
 	int i=0;
-	while(Tab_ended[i].adr!=adr){
+	while(Tab_ended[i].adr!=lig){
 		i++;
 	}
 	return i;

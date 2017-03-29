@@ -36,19 +36,28 @@ int main (void) {
 	retirer_branche(3);
 	retirer_branche(2);
 	retirer_branche(1);
+	retirer_branche(0);
  	int indice;
 	int adr;
 	int nb_instr;
 
+<<<<<<< HEAD
 	int i;
   for (i=0;i++;i<=6){
 		printf("%d\n", Tab_branche[i].adr);
 	}
 	/*indice=rechercher_element_tab_ended(8);
+=======
+	indice=rechercher_element_tab_ended(5);
+>>>>>>> 7601ae5652a636e2104b5068b81cbdd3f6a744b8
 	adr= get_adr_tab_ended(indice);
 	nb_instr=get_nb_instr_tab_ended(indice);*/
 
+<<<<<<< HEAD
 	//printf("adr : %d ; nb_instr : %d\n",adr,nb_instr);
+=======
+	printf("adr : %d ; nb_instr : %d\n",adr,nb_instr);
+>>>>>>> 7601ae5652a636e2104b5068b81cbdd3f6a744b8
 
 
 
