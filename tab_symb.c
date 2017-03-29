@@ -8,9 +8,9 @@ int rechercher_symbole(char id[16]) { // retourne addr de symbole cherché
 
 	while ((i >=0) && (ok == 0)) { // on remonte dans le tab car dernière valeur = celle à utiliser
 		if (!strcmp(Tab_symbs[i].id,id))
-		ok=1;
+			ok=1;
 		else
-		i-- ;
+			i-- ;
 	}
 	return i;
 }

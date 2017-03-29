@@ -1,3 +1,10 @@
+ATTENTION MODIF IMPORTANTE
+
+PLUS D'UTILISATION DE UNION, $1 OU $2 SERONT UNIQUEMENT REPRÉSENTÉS EN STRING
+ET JAMAIS EN INTEGER 
+
+
+
 -Faire la table des instructions qui nous servira pour sauvegarder les blocs if et les blocs while
 
 -Demander dans Exp: TId où retrouve-t-on la valeur de TId?

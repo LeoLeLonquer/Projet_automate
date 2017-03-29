@@ -24,11 +24,11 @@ int main (void) {
 
 	// int prog_prof=4;
 	// printf("Profondeur programme : %d\n" , prog_prof);
-	// int i=0;
-	// for (i=0; i<sommet_tab_branche;i++){
-	// 	printf("Indice : %d\n" ,i);
-	// 	printf("nombre instr : %d\n" , get_nb_instr_tab_branche(i));
-  // }
+	 int i;
+	for (i=0; i<sommet_tab_branche;i++){
+		printf("Indice : %d\n" ,i);
+		printf("adr: %d ; nombre instr : %d\n", get_adr_tab_branche(i), get_nb_instr_tab_branche(i));
+  }
 
 	retirer_branche(6);
 	retirer_branche(5);
@@ -41,26 +41,23 @@ int main (void) {
 	int adr;
 	int nb_instr;
 
-<<<<<<< HEAD
-	int i;
-  for (i=0;i++;i<=6){
-		printf("%d\n", Tab_branche[i].adr);
+	printf("=======================\n" );
+	//int i;
+  for (i=0;i<=6;i++){
+		printf("Indice : %d\n" ,i);
+		printf("adr: %d ; nb_instruct : %d\n", get_adr_tab_ended(i),get_nb_instr_tab_ended(i));
 	}
-	/*indice=rechercher_element_tab_ended(8);
-=======
+
+	printf("Goodbye\n" );
+
+	/*
+	indice=rechercher_element_tab_ended(8);
 	indice=rechercher_element_tab_ended(5);
->>>>>>> 7601ae5652a636e2104b5068b81cbdd3f6a744b8
 	adr= get_adr_tab_ended(indice);
-	nb_instr=get_nb_instr_tab_ended(indice);*/
+	nb_instr=get_nb_instr_tab_ended(indice);
 
-<<<<<<< HEAD
-	//printf("adr : %d ; nb_instr : %d\n",adr,nb_instr);
-=======
 	printf("adr : %d ; nb_instr : %d\n",adr,nb_instr);
->>>>>>> 7601ae5652a636e2104b5068b81cbdd3f6a744b8
-
-
-
+*/
 
 	return 0;
 }

@@ -24,15 +24,21 @@ void ajouter_branche (int ligne, int nb_instr,int prog_prof) {
 }
 
 void retirer_branche (int prog_prof) {
-  if (get_nb_instr_tab_branche(prog_prof)!=0)
-    save_branche();
+  if (get_nb_instr_tab_branche(prog_prof)!=0){
+    //printf("adr: %d ; nb_instruct : %d\n",Tab_branche[sommet_tab_branche-1].adr,Tab_branche[sommet_tab_branche-1].nb_instruct );
+    Tab_ended[index_tab_ended]=Tab_branche[sommet_tab_branche-1];
+    index_tab_ended++;
+  }
   sommet_tab_branche --;
 }
 
 void increment_instr(int prog_prof, int nb){
   int i;
-  for (i=prog_prof+1;i--;i>=0){
-    Tab_branche[i].nb_instruct=Tab_branche[i].nb_instruct + nb;
+  if (sommet_tab_branche>0){
+    for (i=prog_prof+1;i>=0;i--){
+      Tab_branche[i].nb_instruct=Tab_branche[i].nb_instruct + nb;
+      //printf("adr: %d ; nb_instruct : %d\n",Tab_branche[i].adr,Tab_branche[i].nb_instruct );
+    }
   }
 }
 
@@ -59,10 +65,4 @@ int get_nb_instr_tab_ended( int i){
 
 int get_adr_tab_ended( int i){
 	return Tab_ended[i].adr;
-}
-
-
-void save_branche(){
-  Tab_ended[index_tab_ended]=Tab_branche[sommet_tab_branche];
-  index_tab_ended++;
 }

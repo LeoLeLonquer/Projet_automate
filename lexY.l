@@ -29,7 +29,7 @@
 "and"  {return TAnd ;}
 "or"  {return TOr ;}
 "#include"  {return TInclude ;}
-[0-9]+  {yylval.number= atoi(yytext); return TNumber ;}
+[0-9]+  {yylval.string= strdup(yytext); return TNumber ;}
 [a-zA-Z][a-zA-Z0-9]*  {yylval.string=strdup(yytext); return TId ;}
 [ \t]  {;} ; /* ignore les blancs et tabulations */
 %%

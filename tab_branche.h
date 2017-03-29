@@ -39,6 +39,7 @@ void increment_instr(int prog_prof, int nb); // incrémente 'nb_instr' de 'nb' p
 
 void ajouter_branche (int ligne, int nb_instr,int prog_prof) ; //ajoute un branchement {ligne,nb_instr,prog_prof+1} à Tab_branche,
 void retirer_branche (int prog_prof) ; // retire les branchements de la profondeur prog_prof
+																				// sauvegarde une branchement dans Tab_ended, automatique avec retirer_symbole
 
 int get_adr_tab_branche( int prof); //permet de récupérer la ligne du jump à effectuer
 int get_nb_instr_tab_branche( int prof); //permet de récupérer nb_instr du branchement à la profondeur prof
@@ -48,5 +49,3 @@ int rechercher_element_tab_ended( int adr);
 int  get_nb_instr_tab_ended( int i);
 
 int get_adr_tab_ended( int i);
-
-void save_branche(); //PRIVE, sauvegarde une branchement dans Tab_ended, automatique avec retirer_symbole
