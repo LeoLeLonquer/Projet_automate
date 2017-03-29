@@ -40,11 +40,15 @@ int main (void) {
 	int adr;
 	int nb_instr;
 
-	indice=rechercher_element_tab_ended(8);
+	int i;
+  for (i=0;i++;i<=6){
+		printf("%d\n", Tab_branche[i].adr);
+	}
+	/*indice=rechercher_element_tab_ended(8);
 	adr= get_adr_tab_ended(indice);
-	nb_instr=get_nb_instr_tab_ended(indice);
+	nb_instr=get_nb_instr_tab_ended(indice);*/
 
-	printf("adr : %d ; nb_instr : %d",adr,nb_instr);
+	//printf("adr : %d ; nb_instr : %d\n",adr,nb_instr);
 
 
 

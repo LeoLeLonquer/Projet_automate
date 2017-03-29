@@ -96,7 +96,7 @@ Body : ToBracket Instrs TcBracket { retirer_branche(prof);
 
 BodyElse :  ToBracket Instrs TcBracket {retirer_branche(prof);
 										ajouter_branche(ligne,0,prof);
-										fprintf(out,"\n",ligne);
+										fprintf(out,"\n");
 									  increment_ligne(1);
 		  							increment_instr(prof,1);
 										//prof --;
