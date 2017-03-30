@@ -18,11 +18,7 @@ static FILE *out;
 // La pile de variables temporaires s'empile dans le tableau des symboles
 int sommet_tmp=0;// à utiliser lors de la gestion d'expression tel que a= 5+3+2 (sans parenthésage pour l'instant)
 
-
-static flagCondWhile=0; //permet de savoir si on est dans une condition while ou pas
-static cptCondWhile=0; //permet de compter le nombre d'instructions de la condition de while
-												//et de pouvoir JMp au début ensuite
-
+static debutWhile =0;
 
 int increment_ligne(int x){
 	ligne=ligne+x;
@@ -54,8 +50,6 @@ char * expr_arith(char instr[16],char dollardollar[16],char dollar1[16],char dol
   fprintf(out,"%d : STORE %d R0\n", ligne+3,adr1);
   increment_ligne(4);
   increment_instr(prof,4);
-	if (flagCondWhile)
-			 cptCondWhile=cptCondWhile+4;
 
 	sommet_tmp--;
   return dollar1;
@@ -134,7 +128,7 @@ BodyIf : ToBracket Instrs TcBracket {
 
 BodyWhile :  ToBracket Instrs TcBracket {int nb=get_nb_instr_tab_branche(prof);
 																				 retirer_branche(prof);
-																				 fprintf(out,"%d : JMP %d\n",ligne, ligne-nb-cptCondWhile); //-nb permet de remonter
+																				 fprintf(out,"%d : JMP %d\n",ligne, debutWhile); //-nb permet de remonter
 									    							 	   increment_ligne(1);
 		  																 	 increment_instr(prof,1);
 																				 prof --;
@@ -185,9 +179,7 @@ Else : {retirer_branche(prof);
 				  				prof--;}
     ;
 
-While : TWhile {flagCondWhile=1;
-								cptCondWhile=1;
-							  }
+While : TWhile {debutWhile=ligne;}
 				ToParenthesis Exp {int adrSymb= rechercher_symbole($4);
 													 fprintf(out,"%d : LOAD RZ %d\n",ligne, adrSymb);
 													 increment_ligne(1);
@@ -198,8 +190,7 @@ While : TWhile {flagCondWhile=1;
 													 increment_instr(prof,1);
 													 prof++;
 													}
-				TcParenthesis {flagCondWhile=0;}
-				BodyWhile
+				TcParenthesis BodyWhile
 
       ;
 
@@ -225,8 +216,6 @@ Exp : TId {//création nouvelle variable temporaire
 
 					 increment_ligne(2);
 					 increment_instr(prof,2);
-					 if (flagCondWhile)
-					 			cptCondWhile=cptCondWhile+2;
 				 	 strcpy($$,tmp);}
 
 | TNumber {	//création nouvelle variable temporaire
@@ -246,8 +235,7 @@ Exp : TId {//création nouvelle variable temporaire
 		 			 fprintf(out,"%d : STORE %d R0\n",ligne+1,adrSymb);
 					 increment_ligne(2);
 					 increment_instr(prof,2);
-					 if (flagCondWhile)
-					 			cptCondWhile=cptCondWhile+2;
+
 					 strcpy($$,tmp);}
 
 | Exp TPlus Exp { strcpy($$,expr_arith("ADD",$$,$1,$3));}
