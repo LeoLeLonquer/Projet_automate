@@ -1,5 +1,11 @@
 # Projet_automate
 
+Notes: 
+RZ : registre contenant le flag précédant le JMPZ 
+JMPZ adr = JMP si le contenu de RZ est zéro, ne fait rien sinon 
+
+Compilation :
+
 lex :
     flex/lex example.l  => lex.yy.c
     gcc  lex.yy.c -o example -lfl (si flex avant)/-ll (si lex avant)  => example (exécutable)

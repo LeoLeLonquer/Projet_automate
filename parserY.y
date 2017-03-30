@@ -18,6 +18,12 @@ static FILE *out;
 // La pile de variables temporaires s'empile dans le tableau des symboles
 int sommet_tmp=0;// à utiliser lors de la gestion d'expression tel que a= 5+3+2 (sans parenthésage pour l'instant)
 
+
+static flagCondWhile=0; //permet de savoir si on est dans une condition while ou pas
+static cptCondWhile=0; //permet de compter le nombre d'instructions de la condition de while
+												//et de pouvoir JMp au début ensuite
+
+
 int increment_ligne(int x){
 	ligne=ligne+x;
 }
@@ -27,13 +33,13 @@ int increment_ligne(int x){
 char * expr_arith(char instr[16],char dollardollar[16],char dollar1[16],char dollar2[16]){
 	int adr1 =rechercher_symbole(dollar1);
 	if (adr1!=-1)
-  	fprintf(out,"%d : LOAD R0 %s\n",ligne, dollar1);
+  	fprintf(out,"%d : LOAD R0 %d\n",ligne, adr1);
 	else
 		printf("Erreur lors de la recherche de dollar1\n");
 
 	int adr2=rechercher_symbole(dollar2);
 	if (adr1!=-1)
-			fprintf(out,"%d : LOAD R1 %s\n",ligne+1, dollar2);
+			fprintf(out,"%d : LOAD R1 %d\n",ligne+1, adr2);
 	else
 			printf("Erreur lors de la recherche de dollar2\n");
 
@@ -48,6 +54,8 @@ char * expr_arith(char instr[16],char dollardollar[16],char dollar1[16],char dol
   fprintf(out,"%d : STORE %d R0\n", ligne+3,adr1);
   increment_ligne(4);
   increment_instr(prof,4);
+	if (flagCondWhile)
+			 cptCondWhile=cptCondWhile+4;
 
 	sommet_tmp--;
   return dollar1;
@@ -59,7 +67,8 @@ char * expr_arith(char instr[16],char dollardollar[16],char dollar1[16],char dol
 
 %union
 {
-    char *string;
+		int number;
+    char string[100];
 }
 
 %token TMain TInt TIf TWhile TConst ToBracket TcBracket
@@ -67,7 +76,7 @@ char * expr_arith(char instr[16],char dollardollar[16],char dollar1[16],char dol
 %token TSemicolon TEqual TComma TPlus TMinus TSlash
 %token TStar TReturn TEquality TAnd TOr TInclude TElse
 
-%token <string> TNumber
+%token <number> TNumber
 %token <string> TId
 
 %type <string> Exp
@@ -118,18 +127,18 @@ BodyIf : ToBracket Instrs TcBracket {
 										increment_ligne(1);
 										increment_instr(prof,1);
 										retirer_branche(prof);
-										ajouter_branche(ligne,1,prof);
+										ajouter_branche("JMP",ligne-1,1,prof);
 										fprintf(out,"JMP                   \n");
 										}
 		;
 
 BodyWhile :  ToBracket Instrs TcBracket {int nb=get_nb_instr_tab_branche(prof);
-										retirer_branche(prof);
-										fprintf(out,"%d : JMP %d\n",ligne, ligne-nb); //-nb permet de remonter
-									    increment_ligne(1);
-		  								increment_instr(prof,1);
-										prof --;
-										}
+																				 retirer_branche(prof);
+																				 fprintf(out,"%d : JMP %d\n",ligne, ligne-nb-cptCondWhile); //-nb permet de remonter
+									    							 	   increment_ligne(1);
+		  																 	 increment_instr(prof,1);
+																				 prof --;
+																			 }
 			;
 
 Instrs : /*epsilon*/
@@ -158,36 +167,45 @@ ParamsNext : Param
 Param : Exp
       ;
 
-If : TIf {	printf("Voici la ligne : %d",ligne);
-			ajouter_branche(ligne,0,prof);
-      fprintf(out,"JMP            \n");
-			increment_ligne(1);
-			increment_instr(prof,1);
-			prof++;
-		}
- 	ToParenthesis Exp TcParenthesis BodyIf Else
+If : TIf ToParenthesis Exp {	int adrSymb= rechercher_symbole($3);
+															fprintf(out,"%d : LOAD RZ %d\n",ligne, adrSymb);
+															increment_ligne(1);
+															increment_instr(prof,1);
+															ajouter_branche("JMPZ", ligne,0,prof);
+      												fprintf(out,"JMP            \n");
+															increment_ligne(1);
+															increment_instr(prof,1);
+															prof++;
+														}
+		TcParenthesis BodyIf Else
 
 Else : {retirer_branche(prof);
 		prof--;}
     | TElse Body {retirer_branche(prof);
-				  prof--;}
+				  				prof--;}
     ;
 
-While : TWhile {ajouter_branche(ligne,0,prof);
-		        fprintf(out,"JMP             \n");
-			    	increment_ligne(1);
-						increment_instr(prof,1);
-						prof++;
-					}
-		ToParenthesis Exp TcParenthesis BodyWhile
+While : TWhile {flagCondWhile=1;
+								cptCondWhile=1;
+							  }
+				ToParenthesis Exp {int adrSymb= rechercher_symbole($4);
+													 fprintf(out,"%d : LOAD RZ %d\n",ligne, adrSymb);
+													 increment_ligne(1);
+													 increment_instr(prof,1);
+													 ajouter_branche("JMPZ", ligne,1,prof);
+		        							 fprintf(out,"JMP             \n");
+			    								 increment_ligne(1);
+													 increment_instr(prof,1);
+													 prof++;
+													}
+				TcParenthesis {flagCondWhile=0;}
+				BodyWhile
 
       ;
 
 
 //toutes les expressions vont être traduites en variables temporaires
-Exp : TId {int adrId=rechercher_symbole($1);
-
-						//création nouvelle variable temporaire
+Exp : TId {//création nouvelle variable temporaire
 					 char charnb[10];
 					 char tmp[20]="tmp";
 					 sprintf(charnb,"%d",sommet_tmp);
@@ -200,12 +218,15 @@ Exp : TId {int adrId=rechercher_symbole($1);
 					 }
 					 sommet_tmp++;
 
+					 int adrId=rechercher_symbole($1);
 					 //enregistrement du contenu du TId à l'adresse de la var tmp
 					 fprintf(out,"%d : LOAD R0 %d\n",ligne, adrId);
-			 		 fprintf(out,"%d : STORE %d RO\n",ligne+1,adrSymb);
+			 		 fprintf(out,"%d : STORE %d R0\n",ligne+1,adrSymb);
 
 					 increment_ligne(2);
 					 increment_instr(prof,2);
+					 if (flagCondWhile)
+					 			cptCondWhile=cptCondWhile+2;
 				 	 strcpy($$,tmp);}
 
 | TNumber {	//création nouvelle variable temporaire
@@ -221,11 +242,14 @@ Exp : TId {int adrId=rechercher_symbole($1);
 				 		}
 						sommet_tmp++;
 					 //enregistrement de TNumber à l'adresse de la var tmp
-					 fprintf(out,"%d : AFC R0 %s\n",ligne, $1);
-		 			 fprintf(out,"%d : STORE %d RO\n",ligne+1,adrSymb);
+					 fprintf(out,"%d : AFC R0 %d\n",ligne, $1);
+		 			 fprintf(out,"%d : STORE %d R0\n",ligne+1,adrSymb);
 					 increment_ligne(2);
 					 increment_instr(prof,2);
+					 if (flagCondWhile)
+					 			cptCondWhile=cptCondWhile+2;
 					 strcpy($$,tmp);}
+
 | Exp TPlus Exp { strcpy($$,expr_arith("ADD",$$,$1,$3));}
 | Exp TMinus Exp {  strcpy($$, expr_arith("SUB", $$,$1, $3));}
 | Exp TStar Exp {  strcpy($$, expr_arith("MUL", $$,$1, $3));}
@@ -245,7 +269,7 @@ Affect: TId TEqual Exp TSemicolon
 			initialiser_symbole(adrId);
 			int adrExp= rechercher_symbole($3);
 			fprintf(out,"%d : LOAD R0 %d\n",ligne, adrExp);
-			fprintf(out,"%d : STORE %d RO\n",ligne+1,adrId);
+			fprintf(out,"%d : STORE %d R0\n",ligne+1,adrId);
 			increment_ligne(2);
 			increment_instr(prof,2);
 
@@ -266,7 +290,7 @@ Decl1 : TId {ajouter_symbole($1,0,prof);}
 												int adrId=rechercher_symbole($1);
 												int adrExp= rechercher_symbole($3);
 												fprintf(out,"%d : LOAD R0 %d\n",ligne, adrExp);
-												fprintf(out,"%d : STORE %d RO\n",ligne+1,adrId);
+												fprintf(out,"%d : STORE %d R0\n",ligne+1,adrId);
 												increment_ligne(2);
 												increment_instr(prof,2);
 
@@ -291,36 +315,48 @@ int main(void){
 	int indice;
 	int nb_instr;
 	int adr;
-	int flag=0;
- 	char * s=malloc(2000+1);
-	printf("Ready 1\n") ;
+	char *nom=(char *)malloc(20*sizeof(char));
+	char c;
+	int eof=0;
+ 	char * s=malloc(20000+1);
 	rewind(out);
 
-
 	while (fgets(s,20, out)!=NULL){
-				//printf("Je suis dans le 1er While (fin)\n") ;
-		flag=0;
-		while(s[0]!='J' && !flag){
+				printf("Je suis dans le 1er While (fin)\n") ;
+				//printf("Ligne courante : %s ", s);
+		eof=0;
+		while(s[0]!='J' && !eof){
 				lig++;
 				if (fgets(s,20, out)==NULL)
-					flag=1;
-			//printf("Je suis dans le 2e While (fin) ligne %d\n", lig) ;
+					eof=1;
+			 printf("Je suis dans le 2e While (fin) ligne %d\n", lig) ;
 		}
-		if (!flag) {
-			//printf("\ns: %s ; sizeof(s) : %d\n",s,sizeof(s) );
-
-			char c;
-			c=getc(out);
+		printf("Coucou1\n");
+		if (!eof) {
+			c=fgetc(out);
 			while (c!='J') {
-				c=getc(out);
+				//printf("caractere :%c\n", c);
+				c=fgetc(out);
 				fseek(out,-2*sizeof(char), SEEK_CUR);
 			}
-			fseek(out,-sizeof(char), SEEK_CUR);
+			printf("Coucou2\n");
+
+			int i;
+			for (i=0;i<12;i++){
+				printf("Indice : %d\n" ,i);
+				printf("adr: %d ; nb_instruct : %d\n", get_adr_tab_ended(i),get_nb_instr_tab_ended(i));
+			}
+
 			indice=rechercher_element_tab_ended(lig);
+			printf("Coucou42\n");
+			get_nom_tab_ended(indice,nom);
 			adr= get_adr_tab_ended(indice);
 			nb_instr=get_nb_instr_tab_ended(indice);
-			fprintf(out,"\n%d : JMP %d",adr, adr+nb_instr);
+
+			fprintf(out,"\n%d : %s %d", adr,nom, adr+nb_instr);
+
 			fflush(out);
+			printf("Coucou3\n");
 
 		}
 	}

@@ -16,8 +16,9 @@ Laisser une ligne libre (printf("\n")) pour les
 
 typedef struct Branche Branche;
 struct Branche {
+	char * nom;
 	int adr; //numéro de la ligne dans l'assembleur
-  	int nb_instruct; //nombre d'instructions associées à ce branchement
+  int nb_instruct; //nombre d'instructions associées à ce branchement
 	int prof; //compteur du nombre d'accolades ouvertes.
 							//Si prof>prog_prof =>incrémentation de nb_instruct
 							//si prof=prog_prof => fin incrémentation
@@ -37,15 +38,16 @@ extern int index_tab_ended;
 
 void increment_instr(int prog_prof, int nb); // incrémente 'nb_instr' de 'nb' pour les branchements tels que prog_prof>branche.prof
 
-void ajouter_branche (int ligne, int nb_instr,int prog_prof) ; //ajoute un branchement {ligne,nb_instr,prog_prof+1} à Tab_branche,
+void ajouter_branche (char nom[20] ,int ligne, int nb_instr,int prog_prof) ; //ajoute un branchement {ligne,nb_instr,prog_prof+1} à Tab_branche,
 void retirer_branche (int prog_prof) ; // retire les branchements de la profondeur prog_prof
 																				// sauvegarde une branchement dans Tab_ended, automatique avec retirer_symbole
 
 int get_adr_tab_branche( int prof); //permet de récupérer la ligne du jump à effectuer
 int get_nb_instr_tab_branche( int prof); //permet de récupérer nb_instr du branchement à la profondeur prof
+void get_nom_tab_branche(int prof,char buf[]);
 
-int rechercher_element_tab_ended( int adr);
+int rechercher_element_tab_ended( int lig); //renvoie l'adresse de l'élément recherché grâce à sa ligne
 
 int  get_nb_instr_tab_ended( int i);
-
 int get_adr_tab_ended( int i);
+void get_nom_tab_ended(int i,char buf[]);

@@ -3,8 +3,10 @@
 int sommet_tab_branche=0;
 int index_tab_ended=0;
 
-void ajouter_branche (int ligne, int nb_instr,int prog_prof) {
+void ajouter_branche (char nom[20],int ligne, int nb_instr,int prog_prof) {
   struct Branche branche;
+  branche.nom=(char *)malloc(20*sizeof(char));
+  strcpy(branche.nom,nom);
   branche.adr=ligne;
   branche.nb_instruct=nb_instr;
   branche.prof=prog_prof;
@@ -51,6 +53,11 @@ int get_nb_instr_tab_branche( int prog_prof){
   return Tab_branche[prog_prof].nb_instruct;
 }
 
+void get_nom_tab_branche(int prog_prof,char buf[]){
+  strcpy(buf,Tab_branche[prog_prof].nom);
+}
+
+
 int rechercher_element_tab_ended(int lig){
 	int i=0;
 	while(Tab_ended[i].adr!=lig){
@@ -65,4 +72,8 @@ int get_nb_instr_tab_ended( int i){
 
 int get_adr_tab_ended( int i){
 	return Tab_ended[i].adr;
+}
+
+void get_nom_tab_ended(int i, char buf[]){
+  strcpy(buf,Tab_ended[i].nom);
 }

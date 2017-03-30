@@ -1,23 +1,19 @@
-ATTENTION MODIF IMPORTANTE
-
-PLUS D'UTILISATION DE UNION, $1 OU $2 SERONT UNIQUEMENT REPRÉSENTÉS EN STRING
-ET JAMAIS EN INTEGER 
 
 
+ERREURS A CORRIGER :
+- Si aucune affectation au début de test.c alors problème de réécriture des JMP
 
--Faire la table des instructions qui nous servira pour sauvegarder les blocs if et les blocs while
+-Problème avec le token Main
+        résolution en ajoutant une fonction spéciale main dans la grammaire
+        => problème de shiftreduce
 
--Demander dans Exp: TId où retrouve-t-on la valeur de TId?
+-pas de reconnaissance de ce type int c = (a+b)
 
+=============================================== 
 
+done -Faire la table des instructions qui nous servira pour sauvegarder les blocs if et les blocs while
 
-Problème avec le token Main
-	résolution en ajoutant une fonction spéciale main dans la grammaire
-	=> problème de shiftreduce
-
-problème de reconnaissance int c = (a+b)
-
-
+done -Demander dans Exp: TId où retrouve-t-on la valeur de TId?
 
 
 Pour le tableau de branchement :
@@ -26,7 +22,7 @@ Pour le tableau de branchement :
                printf("\n");
                increment_ligne(1);
 		increment_instr(prof,1);
-		porf++;
+		prof++;
 	-dans les corps de blocs, à chaque fois qu’une instruction est printé, utiliser
 		increment_ligne(?)
 		increment_instr(prof,?)
