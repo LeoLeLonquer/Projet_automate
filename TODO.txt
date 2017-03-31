@@ -9,7 +9,22 @@ ERREURS A CORRIGER :
 
 -pas de reconnaissance de ce type int c = (a+b)
 
+-pas la possibilité de faire un while dans un while => pb viens de WhileDeb
+
 =============================================== 
+
+
+-Bien réfléchir à l'implémentation de la pile des adresses de retour 
+    sol1 : 
+	AVANT APPEL de fonction : -sauvegarder l'état courant (adr de retour présente) en décalant les sauvegardes d'adresse de retour (équivalent while) (CP adr1 dans adr 2) 
+				  -créer une nouvelle adresse de retour et la stocker dans adrRet1 (adrRet1 seulement) 
+				  - jumpé dans la fonction
+	APRES APPEL DE FONCTION : -recharger l'état précédent en ramenant l'ancienne adr de retour dans adrRet1
+				  -continuer l'exécution
+
+
+    sol2 :   -chaque déclaration de fonction crée une adresse de retour
+             -chaque invocation de fonction crée une adresse de retour 
 
 done -Faire la table des instructions qui nous servira pour sauvegarder les blocs if et les blocs while
 
@@ -28,3 +43,9 @@ Pour le tableau de branchement :
 		increment_instr(prof,?)
 	-à la fin des branchements 
 		utiliser retirer_branche(prof);
+
+
+
+-Dans le makefile, changer la compilation des test en quelque ligne grâce à :
+test_% : test_tab_%.c tab_.o
+		gcc $^ -o $@

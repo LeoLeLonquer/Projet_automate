@@ -1,6 +1,9 @@
-int f () {
-  int x= 5;
-  while (1){
-  }
-  int b=42;
+int f(int a){
+  int x=4+5;
+}
+
+
+int main () {
+  int a=3+2;
+  f(a);
 }

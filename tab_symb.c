@@ -2,7 +2,7 @@
 
 int nb_elts=0;
 
-int rechercher_symbole(char id[16]) { // retourne addr de symbole cherché
+int rechercher_symbole(char id[16]) { // retourne adr de symbole cherché
 	int i = nb_elts -1;
 	int ok = 0;
 

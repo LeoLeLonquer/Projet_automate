@@ -1,8 +1,8 @@
 cc= gcc
 cflags = -Wall -std=gnu99
-SRCS= lexC.l parserY.y tab_symb.c tab_branche.c
-OBJS= y.tab.o lex.yy.o tab_symb.o tab_branche.o
-TARGET = compilator y.dot y.pdf y.tab.c y.tab.h lex.yy.c *.o y.output test_symb test_branche y.vcg
+SRCS= lexC.l parserY.y tab_symb.c tab_branche.c tab_fun.c
+OBJS= y.tab.o lex.yy.o tab_symb.o tab_branche.o tab_fun.o
+TARGET = compilator y.dot y.pdf y.tab.c y.tab.h lex.yy.c *.o y.output y.vcg test_symb test_branche test_fun
 
 
 default : compilator
@@ -31,4 +31,7 @@ test_symb : test_tab_symb.c tab_symb.o
 		gcc $^ -o $@
 
 test_branche : test_tab_branche.c tab_branche.o
+		gcc $^ -o $@
+
+test_fun : test_tab_fun.c tab_fun.o
 		gcc $^ -o $@

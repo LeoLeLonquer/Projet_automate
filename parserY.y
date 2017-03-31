@@ -1,8 +1,10 @@
 %{
 #include <stdio.h>
-#include "tab_symb.h"
 #include <stdlib.h>
 #include <string.h>
+#include "tab_symb.h"
+#include "tab_fun.h"
+#include "tab_branche.h"
 
 char *progname;
 int yylex(void);
@@ -18,7 +20,11 @@ static FILE *out;
 // La pile de variables temporaires s'empile dans le tableau des symboles
 int sommet_tmp=0;// à utiliser lors de la gestion d'expression tel que a= 5+3+2 (sans parenthésage pour l'instant)
 
-static debutWhile =0;
+static int debutWhile =0;
+
+static int indiceFun=0;
+static int sommet_arg=0;
+static int sommet_adrRet=0;
 
 int increment_ligne(int x){
 	ligne=ligne+x;
@@ -74,6 +80,7 @@ char * expr_arith(char instr[16],char dollardollar[16],char dollar1[16],char dol
 %token <string> TId
 
 %type <string> Exp
+%type <string> Invoc
 
 %left TPlus TMinus
 %left TStar TSlash
@@ -83,38 +90,82 @@ char * expr_arith(char instr[16],char dollardollar[16],char dollar1[16],char dol
 %start Prg    /*définit l'axiome de départ*/
 
 %%
-Prg: Fonction Prg
-    |
+Prg: Fonctions   //Règle inutile mais qu'on garde qd même pour faire joli
     ;
 
-//Fonctions :/* epsilon*/
-//      |Fonction Fonctions
-//			;
+Fonctions : Main          //Le Main doit se situer à la fin du programme
+ 			|Fonction Fonctions
+			;
 
+Fonction: TInt TId {ajouter_fun($2,ligne,0);
+										indiceFun=rechercher_fun($2);}
+					ToParenthesis Args TcParenthesis Body {	char charnb[10];
+																									char adrRet[20]="adrret";
+																									sprintf(charnb,"%d",sommet_adrRet-1);
+																									strcat(adrRet, charnb);
 
+																									int adr_adrRet=rechercher_symbole(adrRet);
+																									if (adr_adrRet==-1){
+																										ajouter_symbole(adrRet,1,prof);
+																									}
+																									fprintf(out,"%d : LOAD R0 %d\n",ligne, adr_adrRet);
+																									fprintf(out,"%d : MOV %d R0\n",ligne+1,adr_adrRet); //MOV= JMP dans contenu R0
+																									increment_ligne(2);
+																									increment_instr(prof,2);
 
-Fonction: TInt TId ToParenthesis Args TcParenthesis Body
+																									sommet_arg=0;
 
-        ;
+																									char charnb[10];
+																									char adrRet[20]="adrret";
+																									sprintf(charnb,"%d",sommet_adrRet);
+																									strcat(adrRet, charnb);
+																									ajouter_symbole(adrRet,1,prof);
 
-//Main : TInt TMain ToParenthesis Args TcParenthesis Body ;
+																									sommet_adrRet++;
+
+																									}
+				;
+
+Main : TInt TMain {sommet_adrRet=0;
+									}
+			 ToParenthesis Args TcParenthesis Body
+			;
 
 
 Args: /* epsilon*/
-	| Arg ListeArgs
+	| Arg ListeArgs {increment_arg(indiceFun,1);}
 	;
 
-ListeArgs: TComma Arg ListeArgs
+ListeArgs: TComma Arg ListeArgs  {increment_arg(indiceFun,1);}
 		     | /*epsilon*/
  		     ;
 
-Arg : TInt TId
+Arg : TInt TId {char charnb[10];
+						   	char arg[20]="arg";
+							 	sprintf(charnb,"%d",sommet_arg-1);
+							 	strcat(arg, charnb);
+								int adrArg= rechercher_symbole(arg);
+								if (adrArg==-1){
+												ajouter_symbole(arg,1,prof);
+							 					adrArg=rechercher_symbole(arg);
+			 					}
+								sommet_arg++;
+
+								ajouter_symbole($2,1,prof);
+								int adrId=rechercher_symbole($2);
+
+								fprintf(out,"%d : LOAD R0 %d\n",ligne, adrArg);
+								fprintf(out,"%d : STORE %d R0\n",ligne+1,adrId);
+								increment_ligne(2);
+								increment_instr(prof,2);
+
+							}
     ;
 
 
 
-
-Body :  ToBracket Instrs TcBracket // peut-être à factoriser avec BodyIf
+// peut-être à factoriser avec BodyIf
+Body :  ToBracket Instrs TcBracket {}
 		;
 
 BodyIf : ToBracket Instrs TcBracket {
@@ -122,7 +173,7 @@ BodyIf : ToBracket Instrs TcBracket {
 										increment_instr(prof,1);
 										retirer_branche(prof);
 										ajouter_branche("JMP",ligne-1,1,prof);
-										fprintf(out,"JMP                   \n");
+										fprintf(out,"€MP                   \n");
 										}
 		;
 
@@ -146,7 +197,54 @@ Instr : Decl
         |Invoc
         ;
 
-Invoc: TId ToParenthesis Params TcParenthesis TSemicolon
+Invoc: TId ToParenthesis {
+													//Sauvegarde de l'adresse de retour
+													char charnb[10];
+													char adrRet[20]="adrret";
+													sprintf(charnb,"%d",sommet_adrRet);
+													strcat(adrRet, charnb);
+													ajouter_symbole(adrRet,1,prof);
+													sommet_adrRet++;
+
+													int adr_adrRet=rechercher_symbole(adrRet);
+
+													//PEUT-ÊTRE FAUT-T-IL AJOUTER UN BRANCHEMENT--En fait ouais faut ajouter un branchement
+													fprintf(out,"%d : AFC R0 %d\n",ligne, ligne+3);//ICI PAS SUR DE QUELLE ADRESSE EST LA BONNE
+													fprintf(out,"%d : STORE %d R0\n",ligne+1,adr_adrRet);
+
+													increment_ligne(2);
+													increment_instr(prof,2);
+													}
+
+			 Params TcParenthesis TSemicolon  { int indiceFonc=rechercher_fun($1);
+				  																int adrDeb=get_adrDeb(indiceFonc);
+
+																					fprintf(out,"%d : JMP %d\n",ligne, adrDeb); //-nb permet de remonter
+
+																					//sauvegarde dans une variable temporaire le contenu retourné
+																					char charnb[10];
+																					char tmp[20]="tmp";
+																					sprintf(charnb,"%d",sommet_tmp);
+																					strcat(tmp, charnb);
+
+																					int adrSymb= rechercher_symbole(tmp);
+															 					 	if (adrSymb==-1){
+															 					 			ajouter_symbole(tmp,1,prof);
+															  					 		adrSymb=rechercher_symbole(tmp);
+															 				 		}
+															 						sommet_tmp++;
+
+																					fprintf(out,"%d : STORE %d R14\n",ligne+1,adrSymb); //R14 est le registre où est enregistré le résultat de la fonction appelée
+
+																					increment_ligne(2);
+																					increment_instr(prof,2);
+
+																					//on supprime les arguments enregistrés
+																					int nbArg=get_nbArg(indiceFonc);
+																					sommet_arg= sommet_arg -nbArg;
+
+																					strcpy($$,tmp);;
+			 																		}
       ;
 
 Params : /*epsilon*/
@@ -158,7 +256,27 @@ ParamsNext : Param
           | Param TComma ParamsNext
           ;
 
-Param : Exp
+Param : Exp {//ajout d'un paramètre dans la pile des symboles
+						char charnb[10];
+				   	char arg[20]="arg";
+					 	sprintf(charnb,"%d",sommet_arg);
+					 	strcat(arg, charnb);
+						//si déjà arg1 dans la pile on l'écrase, sinon on le crée
+					 	int adrArg= rechercher_symbole(arg);
+					 	if (adrArg==-1){
+					 		ajouter_symbole(arg,1,prof);
+ 					 		adrArg=rechercher_symbole(arg);
+				 			}
+						sommet_arg++;
+						//transfert de la valeur de Exp à Arg
+						int adrTmp= rechercher_symbole($1);
+
+						fprintf(out,"%d : LOAD R0 %d\n",ligne, adrTmp);
+						fprintf(out,"%d : STORE %d R0\n",ligne+1,adrArg);
+						increment_ligne(2);
+						increment_instr(prof,2);
+
+}
       ;
 
 If : TIf ToParenthesis Exp {	int adrSymb= rechercher_symbole($3);
@@ -166,7 +284,7 @@ If : TIf ToParenthesis Exp {	int adrSymb= rechercher_symbole($3);
 															increment_ligne(1);
 															increment_instr(prof,1);
 															ajouter_branche("JMPZ", ligne,0,prof);
-      												fprintf(out,"JMP            \n");
+      												fprintf(out,"€MP            \n");
 															increment_ligne(1);
 															increment_instr(prof,1);
 															prof++;
@@ -185,7 +303,7 @@ While : TWhile {debutWhile=ligne;}
 													 increment_ligne(1);
 													 increment_instr(prof,1);
 													 ajouter_branche("JMPZ", ligne,1,prof);
-		        							 fprintf(out,"JMP             \n");
+		        							 fprintf(out,"€MP             \n");
 			    								 increment_ligne(1);
 													 increment_instr(prof,1);
 													 prof++;
@@ -237,7 +355,7 @@ Exp : TId {//création nouvelle variable temporaire
 					 increment_instr(prof,2);
 
 					 strcpy($$,tmp);}
-
+|Invoc  {strcpy($$,$1);}
 | Exp TPlus Exp { strcpy($$,expr_arith("ADD",$$,$1,$3));}
 | Exp TMinus Exp {  strcpy($$, expr_arith("SUB", $$,$1, $3));}
 | Exp TStar Exp {  strcpy($$, expr_arith("MUL", $$,$1, $3));}
@@ -269,21 +387,16 @@ Affect: TId TEqual Exp TSemicolon
 
 Decl : TInt Decl1 DeclX TSemicolon ;
 Decl1 : TId {ajouter_symbole($1,0,prof);}
-	| TId TEqual Exp { int adrId =rechercher_symbole($1);
-											if (adrId !=-1){
-												yyerror("Variable déjà déclarée auparavant");
-											}
-											else {
-												ajouter_symbole($1,1,prof);
-												int adrId=rechercher_symbole($1);
-												int adrExp= rechercher_symbole($3);
-												fprintf(out,"%d : LOAD R0 %d\n",ligne, adrExp);
-												fprintf(out,"%d : STORE %d R0\n",ligne+1,adrId);
-												increment_ligne(2);
-												increment_instr(prof,2);
+	| TId TEqual Exp {
+										ajouter_symbole($1,1,prof);
+										int adrId=rechercher_symbole($1);
+										int adrExp= rechercher_symbole($3);
+										fprintf(out,"%d : LOAD R0 %d\n",ligne, adrExp);
+										fprintf(out,"%d : STORE %d R0\n",ligne+1,adrId);
+										increment_ligne(2);
+										increment_instr(prof,2);
 
-												sommet_tmp--; //plus besoin de la var tmp Exp
-												}
+										sommet_tmp--; //plus besoin de la var tmp Exp
 										}
 	;
 
@@ -322,7 +435,7 @@ int main(void){
 		printf("Coucou1\n");
 		if (!eof) {
 			c=fgetc(out);
-			while (c!='J') {
+			while (c!='€') { //correspond à une ligne laissée pour un jump
 				//printf("caractere :%c\n", c);
 				c=fgetc(out);
 				fseek(out,-2*sizeof(char), SEEK_CUR);
