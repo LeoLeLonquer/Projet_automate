@@ -1,9 +1,10 @@
-int f(int a){
-  int x=4+5;
-}
-
 
 int main () {
-  int a=3+2;
-  f(a);
+  int a=5;
+
+  if (a==5){
+    a=a+1;
+  }
+
+  int b=2;
 }

@@ -18,9 +18,10 @@ static FILE *out;
 //int tmp[]; //tableau des variables temporaires: si tmp[1]=0 => tmp1 inutilisé, tmp[1]>0 => tmp1 utilisé
 
 // La pile de variables temporaires s'empile dans le tableau des symboles
-int sommet_tmp=0;// à utiliser lors de la gestion d'expression tel que a= 5+3+2 (sans parenthésage pour l'instant)
+static int sommet_tmp=0;// à utiliser lors de la gestion d'expression tel que a= 5+3+2 (sans parenthésage pour l'instant)
 
-static int debutWhile =0;
+
+static int sommet_while=0;
 
 static int indiceFun=0;
 static int sommet_arg=0;
@@ -99,29 +100,26 @@ Fonctions : Main          //Le Main doit se situer à la fin du programme
 
 Fonction: TInt TId {ajouter_fun($2,ligne,0);
 										indiceFun=rechercher_fun($2);}
-					ToParenthesis Args TcParenthesis Body {	char charnb[10];
-																									char adrRet[20]="adrret";
-																									sprintf(charnb,"%d",sommet_adrRet-1);
-																									strcat(adrRet, charnb);
-
-																									int adr_adrRet=rechercher_symbole(adrRet);
-																									if (adr_adrRet==-1){
-																										ajouter_symbole(adrRet,1,prof);
-																									}
-																									fprintf(out,"%d : LOAD R0 %d\n",ligne, adr_adrRet);
-																									fprintf(out,"%d : MOV %d R0\n",ligne+1,adr_adrRet); //MOV= JMP dans contenu R0
-																									increment_ligne(2);
-																									increment_instr(prof,2);
-
-																									sommet_arg=0;
-
+					ToParenthesis Args TcParenthesis Body {	//création d'un espace mémoire pour l'adresse de retour de la fonction
 																									char charnb[10];
 																									char adrRet[20]="adrret";
 																									sprintf(charnb,"%d",sommet_adrRet);
 																									strcat(adrRet, charnb);
-																									ajouter_symbole(adrRet,1,prof);
+
+																									int adr_adrRet=rechercher_symbole(adrRet); //obtient l'adresse en mémoire de l'adresse de retour sauvegardée de la fonction
+																									if (adr_adrRet==-1){
+																										ajouter_symbole(adrRet,1,prof);
+																									}
 
 																									sommet_adrRet++;
+
+																									//charge l'adresse de retour sauvegardée dans un registre et retourne à l'exécution avant l'appel de fonction
+																									fprintf(out,"%d : LOAD R0 %d\n",ligne, adr_adrRet);
+																									fprintf(out,"%d : MOV R0\n",ligne+1); //MOV= JMP à l'adresse contenue dans R0
+																									increment_ligne(2);
+																									increment_instr(prof,2);
+
+																									sommet_arg=0;
 
 																									}
 				;
@@ -173,17 +171,11 @@ BodyIf : ToBracket Instrs TcBracket {
 										increment_instr(prof,1);
 										retirer_branche(prof);
 										ajouter_branche("JMP",ligne-1,1,prof);
-										fprintf(out,"€MP                   \n");
+										fprintf(out,"XMP                   \n");
 										}
 		;
 
-BodyWhile :  ToBracket Instrs TcBracket {int nb=get_nb_instr_tab_branche(prof);
-																				 retirer_branche(prof);
-																				 fprintf(out,"%d : JMP %d\n",ligne, debutWhile); //-nb permet de remonter
-									    							 	   increment_ligne(1);
-		  																 	 increment_instr(prof,1);
-																				 prof --;
-																			 }
+BodyWhile :  ToBracket Instrs TcBracket
 			;
 
 Instrs : /*epsilon*/
@@ -197,7 +189,9 @@ Instr : Decl
         |Invoc
         ;
 
-Invoc: TId ToParenthesis {
+Invoc: TId ToParenthesis { //A chaque invocation, il va falloir manipuler la pile d'exécution en créant un espace mémoire pour l'adresse de retour
+													// Il faut penser aux fonctions récursives
+
 													//Sauvegarde de l'adresse de retour
 													char charnb[10];
 													char adrRet[20]="adrret";
@@ -209,6 +203,7 @@ Invoc: TId ToParenthesis {
 													int adr_adrRet=rechercher_symbole(adrRet);
 
 													//PEUT-ÊTRE FAUT-T-IL AJOUTER UN BRANCHEMENT--En fait ouais faut ajouter un branchement
+													//car l'appel d'une fonction est comme l'appel d'un if
 													fprintf(out,"%d : AFC R0 %d\n",ligne, ligne+3);//ICI PAS SUR DE QUELLE ADRESSE EST LA BONNE
 													fprintf(out,"%d : STORE %d R0\n",ligne+1,adr_adrRet);
 
@@ -234,7 +229,8 @@ Invoc: TId ToParenthesis {
 															 				 		}
 															 						sommet_tmp++;
 
-																					fprintf(out,"%d : STORE %d R14\n",ligne+1,adrSymb); //R14 est le registre où est enregistré le résultat de la fonction appelée
+																					//je pense que ça c'est très mauvais et que ça marche pas en récursion
+																					fprintf(out,"%d : LOAD R14 %d\n",ligne+1,adrSymb); //R14 est le registre où est enregistré le résultat de la fonction appelée
 
 																					increment_ligne(2);
 																					increment_instr(prof,2);
@@ -284,7 +280,7 @@ If : TIf ToParenthesis Exp {	int adrSymb= rechercher_symbole($3);
 															increment_ligne(1);
 															increment_instr(prof,1);
 															ajouter_branche("JMPZ", ligne,0,prof);
-      												fprintf(out,"€MP            \n");
+      												fprintf(out,"XMP            \n");
 															increment_ligne(1);
 															increment_instr(prof,1);
 															prof++;
@@ -297,18 +293,28 @@ Else : {retirer_branche(prof);
 				  				prof--;}
     ;
 
-While : TWhile {debutWhile=ligne;}
-				ToParenthesis Exp {int adrSymb= rechercher_symbole($4);
+While : TWhile {char charnb[10];   //on ajoute un premier branchement ici qui nous permettra de compter
+			char whl[20]="whl";						// le nombre d'instruction y compris de la condition
+			sprintf(charnb,"%d",sommet_while);
+			strcat(whl, charnb);
+			ajouter_branche(whl,ligne,0,prof);
+		}
+		 ToParenthesis Exp {int adrSymb= rechercher_symbole($4);
 													 fprintf(out,"%d : LOAD RZ %d\n",ligne, adrSymb);
-													 increment_ligne(1);
-													 increment_instr(prof,1);
-													 ajouter_branche("JMPZ", ligne,1,prof);
-		        							 fprintf(out,"€MP             \n");
-			    								 increment_ligne(1);
-													 increment_instr(prof,1);
+													 fprintf(out,"XMP             \n");
+													 increment_ligne(2);
+													 increment_instr(prof,2);
+													 sommet_while++;
 													 prof++;
 													}
-				TcParenthesis BodyWhile
+		TcParenthesis BodyWhile {int adrDebWhile=get_adr_tab_branche(prof-1);
+														 increment_instr(prof,1);
+														 retirer_branche(prof);
+														 fprintf(out,"%d : JMP %d\n",ligne, adrDebWhile);
+											    	 increment_ligne(1);
+														 prof --;
+														 sommet_while--;
+													 }
 
       ;
 
@@ -413,54 +419,86 @@ int main(void){
 
 	printf("********************Fin parsage********************\n");
 	int lig=0;
-	int indice;
 	int nb_instr;
-	int adr;
+	int adr=0;
 	char *nom=(char *)malloc(20*sizeof(char));
 	char c;
 	int eof=0;
- 	char * s=malloc(20000+1);
+ 	char * s=malloc(2000+1);
 	rewind(out);
 
-	while (fgets(s,20, out)!=NULL){
-				printf("Je suis dans le 1er While (fin)\n") ;
-				//printf("Ligne courante : %s ", s);
-		eof=0;
-		while(s[0]!='J' && !eof){
-				lig++;
-				if (fgets(s,20, out)==NULL)
-					eof=1;
-			 printf("Je suis dans le 2e While (fin) ligne %d\n", lig) ;
+	int indice=0;
+	int j=0;
+
+	while (!tab_ended_is_empty(indice) && !eof){
+		lig=adr;
+		adr=get_adr_tab_ended(indice);
+		for (j=0;j<adr-lig;j++){
+			if(fgets(s,20, out)==NULL){
+			     eof=1;
+			}
 		}
-		printf("Coucou1\n");
-		if (!eof) {
+		if (!eof){
 			c=fgetc(out);
-			while (c!='€') { //correspond à une ligne laissée pour un jump
+			if (c==EOF)
+				eof=1;
+			while (!eof && c!='X') { //correspond à une ligne laissée pour un jump
 				//printf("caractere :%c\n", c);
 				c=fgetc(out);
-				fseek(out,-2*sizeof(char), SEEK_CUR);
+				if (c==EOF)
+					eof=1;
 			}
-			printf("Coucou2\n");
+			fseek(out,-2*sizeof(char), SEEK_CUR);
 
-			int i;
-			for (i=0;i<12;i++){
-				printf("Indice : %d\n" ,i);
-				printf("adr: %d ; nb_instruct : %d\n", get_adr_tab_ended(i),get_nb_instr_tab_ended(i));
-			}
-
-			indice=rechercher_element_tab_ended(lig);
-			printf("Coucou42\n");
 			get_nom_tab_ended(indice,nom);
-			adr= get_adr_tab_ended(indice);
 			nb_instr=get_nb_instr_tab_ended(indice);
 
 			fprintf(out,"\n%d : %s %d", adr,nom, adr+nb_instr);
-
 			fflush(out);
-			printf("Coucou3\n");
-
 		}
+		indice++;
 	}
+	//
+	// while (fgets(s,20, out)!=NULL){
+	// 			printf("Je suis dans le 1er While (fin)\n") ;
+	// 			//printf("Ligne courante : %s ", s);
+	// 	eof=0;
+	// 	while(s[0]!='X' && !eof){
+	// 			lig++;
+	// 			if (fgets(s,20, out)==NULL)
+	// 				eof=1;
+	// 		 printf("Je suis dans le 2e While (fin) ligne %d\n", lig) ;
+	// 	}
+	// 	printf("Coucou1\n");
+	// 	if (!eof) {
+	// 		c=fgetc(out);
+	// 		while (c!='X') { //correspond à une ligne laissée pour un jump
+	// 			//printf("caractere :%c\n", c);
+	// 			c=fgetc(out);
+	// 			fseek(out,-2*sizeof(char), SEEK_CUR);
+	// 		}
+	// 		printf("Coucou2\n");
+	//
+	// 		int i;
+	// 		for (i=0;i<12;i++){
+	// 			printf("Indice : %d\n" ,i);
+	// 			printf("adr: %d ; nb_instruct : %d\n", get_adr_tab_ended(i),get_nb_instr_tab_ended(i));
+	// 		}
+	//
+	// 		indice=rechercher_element_tab_ended(lig);
+	// 		printf("Coucou42\n");
+	// 		get_nom_tab_ended(indice,nom);
+	// 		adr= get_adr_tab_ended(indice);
+	// 		nb_instr=get_nb_instr_tab_ended(indice);
+	//
+	// 		fprintf(out,"\n%d : %s %d", adr,nom, adr+nb_instr);
+	// 		fflush(out);
+	//
+	// 		printf("Coucou3\n");
+	//
+	// 	}
+	// }
+
 	printf("==============\n" );
 	int i;
 	for (i=0;i<3;i++){

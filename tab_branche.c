@@ -1,7 +1,7 @@
 #include "tab_branche.h"
 
 int sommet_tab_branche=0;
-int index_tab_ended=0;
+int sommet_tab_ended=0;
 
 void ajouter_branche (char nom[20],int ligne, int nb_instr,int prog_prof) {
   struct Branche branche;
@@ -28,8 +28,8 @@ void ajouter_branche (char nom[20],int ligne, int nb_instr,int prog_prof) {
 void retirer_branche (int prog_prof) {
   if (get_nb_instr_tab_branche(prog_prof)!=0){
     //printf("adr: %d ; nb_instruct : %d\n",Tab_branche[sommet_tab_branche-1].adr,Tab_branche[sommet_tab_branche-1].nb_instruct );
-    Tab_ended[index_tab_ended]=Tab_branche[sommet_tab_branche-1];
-    index_tab_ended++;
+    Tab_ended[sommet_tab_ended]=Tab_branche[sommet_tab_branche-1];
+    sommet_tab_ended++;
   }
   sommet_tab_branche --;
 }
@@ -44,7 +44,6 @@ void increment_instr(int prog_prof, int nb){
   }
 }
 
-
 int get_adr_tab_branche( int prog_prof){
   return Tab_branche[prog_prof].adr;
 }
@@ -57,6 +56,11 @@ void get_nom_tab_branche(int prog_prof,char buf[]){
   strcpy(buf,Tab_branche[prog_prof].nom);
 }
 
+void set_ligne_tab_branche(int ligne,int prof){
+//  int i=rechercher_element_tab_branche(prof);
+  Tab_branche[prof].adr=ligne;
+}
+
 
 int rechercher_element_tab_ended(int lig){
 	int i=0;
@@ -64,6 +68,13 @@ int rechercher_element_tab_ended(int lig){
 		i++;
 	}
 	return i;
+}
+
+int tab_ended_is_empty(int i){
+  if (i>sommet_tab_ended)
+    return 1;
+  else
+    return 0;
 }
 
 int get_nb_instr_tab_ended( int i){

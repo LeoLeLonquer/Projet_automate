@@ -13,7 +13,7 @@ clean :
 	rm -f $(TARGET)
 
 compilator : $(OBJS)
-		gcc $^ -o $@ -ll -lm
+		gcc -Wall $^ -o $@ -ll -lm
 
 %.o: %.c
 	gcc -c $^
