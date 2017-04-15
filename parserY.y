@@ -162,21 +162,8 @@ Arg : TInt TId {char charnb[10];
 
 
 
-// peut-être à factoriser avec BodyIf
-Body :  ToBracket Instrs TcBracket {}
+Body :  ToBracket Instrs TcBracket 
 		;
-
-BodyIf : ToBracket Instrs TcBracket {
-										increment_ligne(1);
-										increment_instr(prof,1);
-										fermer_branche(prof);
-										ajouter_branche("JMP",ligne-1,1,prof);
-										fprintf(out,"XMP                   \n");
-										}
-		;
-
-BodyWhile :  ToBracket Instrs TcBracket
-			;
 
 Instrs : /*epsilon*/
  		| Instr Instrs
@@ -285,32 +272,39 @@ If : TIf ToParenthesis Exp {	int adrSymb= rechercher_symbole($3);
 															increment_instr(prof,1);
 															prof++;
 														}
-		TcParenthesis BodyIf Else
+		TcParenthesis Body {
+												increment_ligne(1);
+												increment_instr(prof,1);
+												fermer_branche(prof);
+												}
+
+		Else
 
 Else : {fermer_branche(prof);
-		prof--;}
-    | TElse Body {fermer_branche(prof);
-				  				prof--;}
+				prof--;}
+    | TElse {ajouter_branche("JMP",ligne-1,1,prof);
+						 fprintf(out,"XMP                   \n");}
+		 	Body   {fermer_branche(prof);
+				  		prof--;}
     ;
 
-While : TWhile {char charnb[10];   //on ajoute un premier branchement ici qui nous permettra de compter
+While : TWhile {char charnb[10];   //on commence le branchement ici qui nous permettra de compter
 																	// le nombre d'instruction y compris de la condition
 			ajouter_branche("JMPZ",ligne,1,prof);
 		}
 		 ToParenthesis Exp {int adrSymb= rechercher_symbole($4);
 													 fprintf(out,"%d : LOAD RZ %d\n",ligne, adrSymb);
 													 fprintf(out,"XMP             \n");
-													 //set_ligne_tab_branche(ligne+1,prof);
 													 increment_ligne(2);
 													 increment_instr(prof,2);
 													 sommet_while++;
 													 prof++;
 													}
-		TcParenthesis BodyWhile {int adrDebWhile=get_adr_tab_branche(prof-1);
+		TcParenthesis Body {int adrDebWhile=get_adr_tab_branche(prof-1);
 														 printf("ligne : %d\n", ligne);
 														 increment_instr(prof,1);
 														 fermer_branche(prof);
-														 fprintf(out,"%d : JMP %d\n",ligne, adrDebWhile);
+														 fprintf(out,"%d : JMP %d\n",ligne, adrDebWhile); //JMP jusqu'au debut du calcul de la condition
 											    	 increment_ligne(1);
 														 prof --;
 														 sommet_while--;
