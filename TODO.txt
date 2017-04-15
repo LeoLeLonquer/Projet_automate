@@ -11,24 +11,27 @@ ERREURS A CORRIGER :
 
 -pas la possibilité de faire un while dans un while => pb viens de WhileDeb
 
-=============================================== 
+===============================================
 
 
--Bien réfléchir à l'implémentation de la pile des adresses de retour 
-    sol1 : 
-	AVANT APPEL de fonction : -sauvegarder l'état courant (adr de retour présente) en décalant les sauvegardes d'adresse de retour (équivalent while) (CP adr1 dans adr 2) 
-				  -créer une nouvelle adresse de retour et la stocker dans adrRet1 (adrRet1 seulement) 
+-Bien réfléchir à l'implémentation de la pile des adresses de retour
+    sol1 :
+	AVANT APPEL de fonction : -sauvegarder l'état courant (adr de retour présente) en décalant les sauvegardes d'adresse de retour (équivalent while) (CP adr1 dans adr 2)
+				  -créer une nouvelle adresse de retour et la stocker dans adrRet1 (adrRet1 seulement)
 				  - jumpé dans la fonction
 	APRES APPEL DE FONCTION : -recharger l'état précédent en ramenant l'ancienne adr de retour dans adrRet1
 				  -continuer l'exécution
 
 
     sol2 :   -chaque déclaration de fonction crée une adresse de retour
-             -chaque invocation de fonction crée une adresse de retour 
+             -chaque invocation de fonction crée une adresse de retour
 
 done -Faire la table des instructions qui nous servira pour sauvegarder les blocs if et les blocs while
 
 done -Demander dans Exp: TId où retrouve-t-on la valeur de TId?
+
+done -dans toutes les expressions (même les affectations, les variables intermédiaires sont utilisées)
+
 
 
 Pour le tableau de branchement :
@@ -41,7 +44,7 @@ Pour le tableau de branchement :
 	-dans les corps de blocs, à chaque fois qu’une instruction est printée, utiliser
 		increment_ligne(?)
 		increment_instr(prof,?)
-	-à la fin des branchements 
+	-à la fin des branchements
 		utiliser retirer_branche(prof);
 
 

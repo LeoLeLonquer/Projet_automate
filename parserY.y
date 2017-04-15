@@ -169,7 +169,7 @@ Body :  ToBracket Instrs TcBracket {}
 BodyIf : ToBracket Instrs TcBracket {
 										increment_ligne(1);
 										increment_instr(prof,1);
-										retirer_branche(prof);
+										fermer_branche(prof);
 										ajouter_branche("JMP",ligne-1,1,prof);
 										fprintf(out,"XMP                   \n");
 										}
@@ -287,29 +287,29 @@ If : TIf ToParenthesis Exp {	int adrSymb= rechercher_symbole($3);
 														}
 		TcParenthesis BodyIf Else
 
-Else : {retirer_branche(prof);
+Else : {fermer_branche(prof);
 		prof--;}
-    | TElse Body {retirer_branche(prof);
+    | TElse Body {fermer_branche(prof);
 				  				prof--;}
     ;
 
 While : TWhile {char charnb[10];   //on ajoute un premier branchement ici qui nous permettra de compter
-			char whl[20]="whl";						// le nombre d'instruction y compris de la condition
-			sprintf(charnb,"%d",sommet_while);
-			strcat(whl, charnb);
-			ajouter_branche(whl,ligne,0,prof);
+																	// le nombre d'instruction y compris de la condition
+			ajouter_branche("JMPZ",ligne,1,prof);
 		}
 		 ToParenthesis Exp {int adrSymb= rechercher_symbole($4);
 													 fprintf(out,"%d : LOAD RZ %d\n",ligne, adrSymb);
 													 fprintf(out,"XMP             \n");
+													 //set_ligne_tab_branche(ligne+1,prof);
 													 increment_ligne(2);
 													 increment_instr(prof,2);
 													 sommet_while++;
 													 prof++;
 													}
 		TcParenthesis BodyWhile {int adrDebWhile=get_adr_tab_branche(prof-1);
+														 printf("ligne : %d\n", ligne);
 														 increment_instr(prof,1);
-														 retirer_branche(prof);
+														 fermer_branche(prof);
 														 fprintf(out,"%d : JMP %d\n",ligne, adrDebWhile);
 											    	 increment_ligne(1);
 														 prof --;
@@ -419,8 +419,8 @@ int main(void){
 
 	printf("********************Fin parsage********************\n");
 	int lig=0;
-	int nb_instr;
 	int adr=0;
+	int nb_instr;
 	char *nom=(char *)malloc(20*sizeof(char));
 	char c;
 	int eof=0;
@@ -430,14 +430,15 @@ int main(void){
 	int indice=0;
 	int j=0;
 
-	while (!tab_ended_is_empty(indice) && !eof){
-		lig=adr;
-		adr=get_adr_tab_ended(indice);
-		for (j=0;j<adr-lig;j++){
-			if(fgets(s,20, out)==NULL){
+	int sommet_tab_branche=get_sommet_tab_branche();
+
+	for (indice=0;indice<sommet_tab_branche;indice++){
+		adr=get_adr_tab_branche_with_indice(indice);
+		for (j=0;j<adr-lig;j++){//on se déplace jusqu'à la ligne à l'addresse enregistrée
+			if(fgets(s,20, out)==NULL)
 			     eof=1;
-			}
 		}
+		lig=adr;
 		if (!eof){
 			c=fgetc(out);
 			if (c==EOF)
@@ -447,63 +448,24 @@ int main(void){
 				c=fgetc(out);
 				if (c==EOF)
 					eof=1;
+				if (c=='\n')
+					lig++;
 			}
 			fseek(out,-2*sizeof(char), SEEK_CUR);
 
-			get_nom_tab_ended(indice,nom);
-			nb_instr=get_nb_instr_tab_ended(indice);
+			get_nom_tab_branche_with_indice(indice,nom);
+			nb_instr=get_nb_instr_tab_branche_with_indice(indice);
 
-			fprintf(out,"\n%d : %s %d", adr,nom, adr+nb_instr);
+			fprintf(out,"\n%d : %s %d", lig,nom, lig+nb_instr);
 			fflush(out);
 		}
-		indice++;
 	}
-	//
-	// while (fgets(s,20, out)!=NULL){
-	// 			printf("Je suis dans le 1er While (fin)\n") ;
-	// 			//printf("Ligne courante : %s ", s);
-	// 	eof=0;
-	// 	while(s[0]!='X' && !eof){
-	// 			lig++;
-	// 			if (fgets(s,20, out)==NULL)
-	// 				eof=1;
-	// 		 printf("Je suis dans le 2e While (fin) ligne %d\n", lig) ;
-	// 	}
-	// 	printf("Coucou1\n");
-	// 	if (!eof) {
-	// 		c=fgetc(out);
-	// 		while (c!='X') { //correspond à une ligne laissée pour un jump
-	// 			//printf("caractere :%c\n", c);
-	// 			c=fgetc(out);
-	// 			fseek(out,-2*sizeof(char), SEEK_CUR);
-	// 		}
-	// 		printf("Coucou2\n");
-	//
-	// 		int i;
-	// 		for (i=0;i<12;i++){
-	// 			printf("Indice : %d\n" ,i);
-	// 			printf("adr: %d ; nb_instruct : %d\n", get_adr_tab_ended(i),get_nb_instr_tab_ended(i));
-	// 		}
-	//
-	// 		indice=rechercher_element_tab_ended(lig);
-	// 		printf("Coucou42\n");
-	// 		get_nom_tab_ended(indice,nom);
-	// 		adr= get_adr_tab_ended(indice);
-	// 		nb_instr=get_nb_instr_tab_ended(indice);
-	//
-	// 		fprintf(out,"\n%d : %s %d", adr,nom, adr+nb_instr);
-	// 		fflush(out);
-	//
-	// 		printf("Coucou3\n");
-	//
-	// 	}
-	// }
 
 	printf("==============\n" );
 	int i;
 	for (i=0;i<3;i++){
 		printf("Indice : %d\n" ,i);
-		printf("adr: %d ; nb_instruct : %d\n", get_adr_tab_ended(i),get_nb_instr_tab_ended(i));
+		printf("adr: %d ; nb_instruct : %d\n", get_adr_tab_branche_with_indice(i),get_nb_instr_tab_branche_with_indice(i));
 	}
 	fclose(out);
 	return 0;
