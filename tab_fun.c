@@ -34,8 +34,8 @@ void increment_arg(int indice,int nb){
 	Tab_fun[indice].nbArg=Tab_fun[indice].nbArg+nb;
 }
 
-int get_adrDeb(int indice){
-	return Tab_fun[indice].adrDeb ;
+int get_ground_fun(int indice){
+	return Tab_fun[indice].ground ;
 }
 
 int get_nbArg(int indice){

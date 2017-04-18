@@ -20,17 +20,17 @@ static FILE *out;
 // La pile de variables temporaires s'empile dans le tableau des symboles
 static int sommet_tmp=0;// à utiliser lors de la gestion d'expression tel que a= 5+3+2 (sans parenthésage pour l'instant)
 
+static int indiceFun; //utilisé surtout pour compter le nombre d'arguments
 
 static int sommet_while=0;
 
-static int indiceFun=0;
 static int sommet_arg=0;
-static int sommet_adrRet=0;
+
+int adrRet=0; // on suppose que l'adresse de retour est fixe et égale à 0;
 
 int increment_ligne(int x){
 	ligne=ligne+x;
 }
-
 
 
 char * expr_arith(char instr[16],char dollardollar[16],char dollar1[16],char dollar2[16]){
@@ -92,39 +92,35 @@ char * expr_arith(char instr[16],char dollardollar[16],char dollar1[16],char dol
 
 %%
 Prg: Fonctions   //Règle inutile mais qu'on garde qd même pour faire joli
-    ;
+							{// On occupe l'emplacement 0 de la table des symboles
+							 char Ret[20]="ret";
+							 int adr_Ret=rechercher_symbole(Ret);
+							 if (adr_Ret==-1)
+									ajouter_symbole(Ret,1,prof);
+							}
+		;
 
 Fonctions : Main          //Le Main doit se situer à la fin du programme
  			|Fonction Fonctions
 			;
 
-Fonction: TInt TId {ajouter_fun($2,ligne,0);
-										indiceFun=rechercher_fun($2);}
-					ToParenthesis Args TcParenthesis Body {	//création d'un espace mémoire pour l'adresse de retour de la fonction
-																									char charnb[10];
-																									char adrRet[20]="adrret";
-																									sprintf(charnb,"%d",sommet_adrRet);
-																									strcat(adrRet, charnb);
+Fonction: TInt TId {ligne=0;
+										ajouter_fun($2,ligne,get_ground_symb(),0);
+										fprintf(out, "\n%s :\n", $2);
+										set_ground_to_roof();
+									}
+					ToParenthesis Args TcParenthesis
+					Body {	int indiceFun= rechercher_fun($2);
+								  int ground = get_ground_fun(indiceFun);
+									set_ground(ground);
 
-																									int adr_adrRet=rechercher_symbole(adrRet); //obtient l'adresse en mémoire de l'adresse de retour sauvegardée de la fonction
-																									if (adr_adrRet==-1){
-																										ajouter_symbole(adrRet,1,prof);
-																									}
-
-																									sommet_adrRet++;
-
-																									//charge l'adresse de retour sauvegardée dans un registre et retourne à l'exécution avant l'appel de fonction
-																									fprintf(out,"%d : LOAD R0 %d\n",ligne, adr_adrRet);
-																									fprintf(out,"%d : MOV R0\n",ligne+1); //MOV= JMP à l'adresse contenue dans R0
-																									increment_ligne(2);
-																									increment_instr(prof,2);
-
-																									sommet_arg=0;
+								 sommet_arg=0;
 
 																									}
 				;
 
-Main : TInt TMain {sommet_adrRet=0;
+Main : TInt TMain { ligne=0;
+									fprintf(out, "\nstart :\n");}
 									}
 			 ToParenthesis Args TcParenthesis Body
 			;
@@ -138,20 +134,27 @@ ListeArgs: TComma Arg ListeArgs  {increment_arg(indiceFun,1);}
 		     | /*epsilon*/
  		     ;
 
-Arg : TInt TId {char charnb[10];
-						   	char arg[20]="arg";
-							 	sprintf(charnb,"%d",sommet_arg-1);
-							 	strcat(arg, charnb);
+Arg : TInt TId {
+								char charnb[10];
+								char arg[20]="arg";
+								sprintf(charnb,"%d",sommet_arg);
+								strcat(arg, charnb);
+								//si déjà arg1 dans la pile on l'écrase, sinon on le crée
 								int adrArg= rechercher_symbole(arg);
 								if (adrArg==-1){
-												ajouter_symbole(arg,1,prof);
-							 					adrArg=rechercher_symbole(arg);
-			 					}
+									ajouter_symbole(arg,1,prof);
+									adrArg=rechercher_symbole(arg);
+									}
 								sommet_arg++;
 
-								ajouter_symbole($2,1,prof);
+								int adrId=rechercher_symbole($2);
+								if (adrId!=-1)
+										ajouter_symbole($2,1,prof);
+								else
+										printf("Argument déjà déclaré!\n" );
 								int adrId=rechercher_symbole($2);
 
+								// on charge ce qui a été enregistré dans 
 								fprintf(out,"%d : LOAD R0 %d\n",ligne, adrArg);
 								fprintf(out,"%d : STORE %d R0\n",ligne+1,adrId);
 								increment_ligne(2);
@@ -162,7 +165,7 @@ Arg : TInt TId {char charnb[10];
 
 
 
-Body :  ToBracket Instrs TcBracket 
+Body :  ToBracket Instrs TcBracket
 		;
 
 Instrs : /*epsilon*/
@@ -174,34 +177,24 @@ Instr : Decl
         |While
         |Affect
         |Invoc
+				|Return
         ;
 
-Invoc: TId ToParenthesis { //A chaque invocation, il va falloir manipuler la pile d'exécution en créant un espace mémoire pour l'adresse de retour
-													// Il faut penser aux fonctions récursives
+Return : TReturn Exp {	int adrTmp= rechercher_symbole($2);
+												fprintf(out,"%d : LOAD R0 %d\n",ligne, adrTmp);
+												fprintf(out,"%d : STORE %d R0\n",ligne+1,adrRet);
+												increment_ligne(2);
+												increment_instr(prof,2);
+											}
 
-													//Sauvegarde de l'adresse de retour
-													char charnb[10];
-													char adrRet[20]="adrret";
-													sprintf(charnb,"%d",sommet_adrRet);
-													strcat(adrRet, charnb);
-													ajouter_symbole(adrRet,1,prof);
-													sommet_adrRet++;
 
-													int adr_adrRet=rechercher_symbole(adrRet);
+Invoc: TId ToParenthesis  {set_ground_to_roof();}
+			 Params TcParenthesis TSemicolon 	{ fprintf(out,"%d : CALL %s\n", $1);
 
-													//PEUT-ÊTRE FAUT-T-IL AJOUTER UN BRANCHEMENT--En fait ouais faut ajouter un branchement
-													//car l'appel d'une fonction est comme l'appel d'un if
-													fprintf(out,"%d : AFC R0 %d\n",ligne, ligne+3);//ICI PAS SUR DE QUELLE ADRESSE EST LA BONNE
-													fprintf(out,"%d : STORE %d R0\n",ligne+1,adr_adrRet);
+																					int indiceFonc=rechercher_fun($1);
+																					int ground = get_ground_fun(indiceFonc);
+																					set_ground(ground);
 
-													increment_ligne(2);
-													increment_instr(prof,2);
-													}
-
-			 Params TcParenthesis TSemicolon  { int indiceFonc=rechercher_fun($1);
-				  																int adrDeb=get_adrDeb(indiceFonc);
-
-																					fprintf(out,"%d : JMP %d\n",ligne, adrDeb); //-nb permet de remonter
 
 																					//sauvegarde dans une variable temporaire le contenu retourné
 																					char charnb[10];
@@ -216,11 +209,13 @@ Invoc: TId ToParenthesis { //A chaque invocation, il va falloir manipuler la pil
 															 				 		}
 															 						sommet_tmp++;
 
-																					//je pense que ça c'est très mauvais et que ça marche pas en récursion
-																					fprintf(out,"%d : LOAD R14 %d\n",ligne+1,adrSymb); //R14 est le registre où est enregistré le résultat de la fonction appelée
+																					//chargement du retour de la fonction dans R0
+																					fprintf(out,"%d : LOAD R0 %d\n",ligne+1,adrRet);
+																					//on libère l'adresse de retour en enregistrant le résultat dans la var tmp
+																					fprintf(out,"%d : STORE %d R0\n",ligne+1,adrSymb);
 
-																					increment_ligne(2);
-																					increment_instr(prof,2);
+																					increment_ligne(3);
+																					increment_instr(prof,3);
 
 																					//on supprime les arguments enregistrés
 																					int nbArg=get_nbArg(indiceFonc);

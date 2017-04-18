@@ -1,18 +1,23 @@
 #include "tab_symb.h"
 
 int nb_elts=0;
+int ground=0;
+
 
 int rechercher_symbole(char id[16]) { // retourne adr de symbole cherché
 	int i = nb_elts -1;
 	int ok = 0;
 
-	while ((i >=0) && (ok == 0)) { // on remonte dans le tab car dernière valeur = celle à utiliser
+	while ((ok == 0) && (ground=>i)) { // on remonte dans le tab car dernière valeur = celle à utiliser
 		if (!strcmp(Tab_symbs[i].id,id))
 			ok=1;
 		else
 			i-- ;
 	}
-	return i;
+	if (ground <i)
+		return -1;
+	else
+		return i;
 }
 
 
@@ -33,7 +38,7 @@ void ajouter_symbole (char id[16], int init, int prof) {
 
 void retirer_symbole (int profondeur) {
 	int ok = 0;
-	while (!ok  && nb_elts>0 ) {
+	while (!ok  && nb_elts=>ground ) {
 		if (Tab_symbs[nb_elts-1].profondeur == profondeur) {
 			nb_elts --;
 		}
@@ -43,7 +48,21 @@ void retirer_symbole (int profondeur) {
 }
 
 void initialiser_symbole(int pos){
-	Tab_symbs[pos].init=1;
+	if (pos>ground){
+		Tab_symbs[pos].init=1;
+	}
+}
+
+void set_ground(int sol){
+	ground=sol;
+}
+
+void set_ground_to_roof(){
+	ground= nb_elts;
+}
+
+int get_ground_symb(){
+	return ground;
 }
 
 /*
