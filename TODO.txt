@@ -14,6 +14,29 @@ ERREURS A CORRIGER :
 ===============================================
 
 
+CHANGER LES STORE EBP+%d EN STORE ESP
+
+-Pour les fontions :
+  on a trois registres ebp et esp pour cadrer la pile, eax pour le retour
+
+  A l'invocation de fonction:
+        -on empile les arguments à esp+1, esp+2 etc... et on incrémente esp
+        -on fait call de la fonction demandée
+
+  A la création de la fonction :
+    Au début :
+        -on enregistre ebp à l'adresse esp+1
+        -on met ebp à esp
+        -on chope les arguments à ebp-2, ebp-3 (LOAD) et on les enregistre à esp+1, esp+2 (STORE) et on incrémente esp
+        -on enregistre les nouvelles déclarations à esp+1, en incrémentant esp
+
+    A La fin :
+        -on chope l'ancien ebp qui est à ebp-1
+	
+        -on met esp à ebp-nbarg-1 (card(adr de retour))
+        -on met ebp à ancien ebp
+
+
 -Bien réfléchir à l'implémentation de la pile des adresses de retour
     sol1 :
 	AVANT APPEL de fonction : -sauvegarder l'état courant (adr de retour présente) en décalant les sauvegardes d'adresse de retour (équivalent while) (CP adr1 dans adr 2)

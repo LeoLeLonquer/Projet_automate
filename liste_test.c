@@ -81,3 +81,13 @@ int main () {
   }
   int b=2;
 }
+
+//===============
+
+int f(int a){
+  return a;
+}
+
+int main{
+  f(a);
+}

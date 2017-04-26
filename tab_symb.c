@@ -1,23 +1,19 @@
 #include "tab_symb.h"
 
-int nb_elts=0;
-int ground=0;
+int nbElts=0;
 
 
 int rechercher_symbole(char id[16]) { // retourne adr de symbole cherché
-	int i = nb_elts -1;
+	int i = nbElts -1;
 	int ok = 0;
 
-	while ((ok == 0) && (ground=>i)) { // on remonte dans le tab car dernière valeur = celle à utiliser
+	while ((ok == 0) && (0<=i)) { // on remonte dans le tab car dernière valeur = celle à utiliser
 		if (!strcmp(Tab_symbs[i].id,id))
 			ok=1;
 		else
 			i-- ;
 	}
-	if (ground <i)
-		return -1;
-	else
-		return i;
+	return i;
 }
 
 
@@ -27,43 +23,37 @@ void ajouter_symbole (char id[16], int init, int prof) {
 	strcpy(symb.id,id);
 	symb.init=init;
 	symb.profondeur=prof;
-	if (nb_elts >= 1024) {
+	if (nbElts >= 1024) {
 		printf("Attention! tableau plein \n") ;
 	}
 	else {
-		Tab_symbs[nb_elts] = symb;
-		nb_elts ++ ;
+		Tab_symbs[nbElts] = symb;
+		nbElts ++ ;
 	}
 }
 
 void retirer_symbole (int profondeur) {
 	int ok = 0;
-	while (!ok  && nb_elts=>ground ) {
-		if (Tab_symbs[nb_elts-1].profondeur == profondeur) {
-			nb_elts --;
+	while (!ok  && nbElts>0 ) {
+		if (Tab_symbs[nbElts-1].profondeur == profondeur) {
+			nbElts --;
 		}
-		else
-		ok = 1;
+		else{
+			ok = 1;
+		}
 	}
 }
 
 void initialiser_symbole(int pos){
-	if (pos>ground){
+	if (pos>=0){
 		Tab_symbs[pos].init=1;
 	}
 }
 
-void set_ground(int sol){
-	ground=sol;
+int get_nbElts(){
+	return nbElts;
 }
 
-void set_ground_to_roof(){
-	ground= nb_elts;
-}
-
-int get_ground_symb(){
-	return ground;
-}
 
 /*
 // rajouter dans le yacc les bouts de code pour traiter : "{} " --> si a = b+c+d alors

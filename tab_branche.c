@@ -1,7 +1,6 @@
 #include "tab_branche.h"
 
 int sommet_tab_branche=0;
-//int sommet_tab_ended=0;
 
 void ajouter_branche (char nom[20],int ligne, int nb_instr,int prog_prof) {
   struct Branche branche;
@@ -13,12 +12,6 @@ void ajouter_branche (char nom[20],int ligne, int nb_instr,int prog_prof) {
   branche.closed=0;
   if (prog_prof >= 1024) {
     printf("Attention! Tableau des branchements plein \n") ;
-  }
-  else if (prog_prof>sommet_tab_branche+1){
-    printf("Erreur, profondeur trop grande \n");
-  }
-  else if (prog_prof<sommet_tab_branche){
-    printf("Erreur, profondeur trop petite \n");
   }
   else {
     Tab_branche[sommet_tab_branche] = branche ;
@@ -83,6 +76,11 @@ int tab_branche_is_empty(int i){
   else
     return 0;
 }
+
+int get_prof_with_indice(int indice){
+  return Tab_branche[indice].prof;
+}
+
 
 int get_adr_tab_branche_with_indice(int indice){
   return Tab_branche[indice].adr;
