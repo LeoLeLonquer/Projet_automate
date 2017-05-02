@@ -13,10 +13,24 @@ ERREURS A CORRIGER :
 
 ===============================================
 
+-finalement on enlève les CALL et on revient à des JMP, (pas besoin de sauvegarder les ebp, pas sur de ça) 
+	-CALL=
+		AFC R0 adrretour
+		STORE ebp+nbarg+adrret R0
+		ADD ebp 4
+		JMP F
+	adrretour: SUB ebp 4
+    Le call permet de sauvegarder l'adresse de retour
 
-CHANGER LES STORE EBP+%d EN STORE ESP
 
--Pour les fontions :
+
+
+
+-corriger les erreurs de variables non trouvées (-1) (LOAD R0 [ebp+-1])
+
+done -CHANGER LES STORE EBP+%d EN STORE ESP
+
+done-Pour les fontions :
   on a trois registres ebp et esp pour cadrer la pile, eax pour le retour
 
   A l'invocation de fonction:
@@ -32,12 +46,12 @@ CHANGER LES STORE EBP+%d EN STORE ESP
 
     A La fin :
         -on chope l'ancien ebp qui est à ebp-1
-	
+
         -on met esp à ebp-nbarg-1 (card(adr de retour))
         -on met ebp à ancien ebp
 
 
--Bien réfléchir à l'implémentation de la pile des adresses de retour
+remanié-Bien réfléchir à l'implémentation de la pile des adresses de retour
     sol1 :
 	AVANT APPEL de fonction : -sauvegarder l'état courant (adr de retour présente) en décalant les sauvegardes d'adresse de retour (équivalent while) (CP adr1 dans adr 2)
 				  -créer une nouvelle adresse de retour et la stocker dans adrRet1 (adrRet1 seulement)
@@ -72,6 +86,6 @@ Pour le tableau de branchement :
 
 
 
--Dans le makefile, changer la compilation des test en quelque ligne grâce à :
+-Dans le makefile, changer la compilation des tests en quelque ligne grâce à :
 test_% : test_tab_%.c tab_.o
 		gcc $^ -o $@

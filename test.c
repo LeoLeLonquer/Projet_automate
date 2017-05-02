@@ -1,5 +1,5 @@
 int f(int a){
-  int b=a;
+  f(a);
 }
 
 int main(){

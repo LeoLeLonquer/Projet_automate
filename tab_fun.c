@@ -16,9 +16,10 @@ int rechercher_fun(char id[16]) {
 }
 
 
-void ajouter_fun (char id[16], int nbArg) {
+void ajouter_fun (char id[16],int adrDeb, int nbArg) {
 	struct Fun fun;
 	strcpy(fun.id,id);
+	fun.adrDeb=adrDeb;
 	fun.nbArg=nbArg;
 	if (sommet_tab_fun >= 1024) {
 		printf("Attention! tableau plein \n") ;
@@ -53,6 +54,10 @@ void ajouter_arg(int indice, char nom[16]){
 		strcpy(Tab_fun[indice].tabArg[sommet].nom,nom);
 		increment_arg(indice,1);
 	}
+}
+
+int get_adrDeb(int indice){
+	return Tab_fun[indice].adrDeb;
 }
 
 int get_numero_of_arg(int indice, char nom[16]){

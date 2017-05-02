@@ -10,7 +10,7 @@ char *progname;
 int yylex(void);
 void yyerror(const char *s);
 
-static int ligne =0;
+static int ligne=0;
 static int prof=0;
 
 static FILE *out;
@@ -32,25 +32,25 @@ int increment_ligne(int x){
 char * expr_arith(char instr[16],char dollardollar[16],char dollar1[16],char dollar2[16]){
 	int adr1 =rechercher_symbole(dollar1);
 	if (adr1!=-1)
-  	fprintf(out,"\t%d : LOAD R0 [ebp+%d]\n",ligne, adr1);
+  	fprintf(out,"%d : LOAD R0 [ebp+%d]\n",ligne, adr1);
 	else
 		printf("Erreur lors de la recherche de dollar1\n");
 
 	int adr2=rechercher_symbole(dollar2);
 	if (adr1!=-1)
-			fprintf(out,"\t%d : LOAD R1 [ebp+%d]\n",ligne+1, adr2);
+			fprintf(out,"%d : LOAD R1 [ebp+%d]\n",ligne+1, adr2);
 	else
 			printf("Erreur lors de la recherche de dollar2\n");
 
-  if (strcmp(instr,"ADD")==0){ fprintf(out,"\t%d : ADD R0 R0 R1\n",ligne+2);}
-  else if (strcmp(instr,"SUB")==0){fprintf(out,"\t%d : SUB R0 R0 R1\n",ligne+2);}
-  else if (strcmp(instr,"DIV")==0){fprintf(out,"\t%d : DIV R0 R0 R1\n",ligne+2);}
-  else if (strcmp(instr,"MUL")==0){fprintf(out,"\t%d : MUL R0 R0 R1\n",ligne+2);}
-  else if (strcmp(instr,"OR")==0){fprintf(out,"\t%d : OR R0 R0 R1\n",ligne+2);}
-  else if (strcmp(instr,"AND")==0){fprintf(out,"\t%d : AND R0 R0 R1\n",ligne+2);}
-  else if (strcmp(instr,"EQU")==0){fprintf(out,"\t%d : EQU R0 R0 R1\n",ligne+2);}
+  if (strcmp(instr,"ADD")==0){ fprintf(out,"%d : ADD R0 R0 R1\n",ligne+2);}
+  else if (strcmp(instr,"SUB")==0){fprintf(out,"%d : SUB R0 R0 R1\n",ligne+2);}
+  else if (strcmp(instr,"DIV")==0){fprintf(out,"%d : DIV R0 R0 R1\n",ligne+2);}
+  else if (strcmp(instr,"MUL")==0){fprintf(out,"%d : MUL R0 R0 R1\n",ligne+2);}
+  else if (strcmp(instr,"OR")==0){fprintf(out,"%d : OR R0 R0 R1\n",ligne+2);}
+  else if (strcmp(instr,"AND")==0){fprintf(out,"%d : AND R0 R0 R1\n",ligne+2);}
+  else if (strcmp(instr,"EQU")==0){fprintf(out,"%d : EQU R0 R0 R1\n",ligne+2);}
 
-  fprintf(out,"\t%d : STORE ebp+%d R0\n", ligne+3,adr1);
+  fprintf(out,"%d : STORE ebp+%d R0\n", ligne+3,adr1);
   increment_ligne(4);
   increment_instr(prof,4);
 
@@ -87,34 +87,28 @@ char * expr_arith(char instr[16],char dollardollar[16],char dollar1[16],char dol
 %start Prg    /*définit l'axiome de départ*/
 
 %%
-Prg: Fonctions   //Règle inutile mais qu'on garde qd même pour faire joli
-							{
-							}
+Prg: {fprintf(out,"KompilatorZ42            \n");
+			ajouter_branche("JMP",ligne,1,prof);
+			fprintf(out,"XMP            \n");
+			increment_ligne(1);
+			increment_instr(prof,1);
+			prof++;
+		}
+		Fonctions
 		;
 
 Fonctions : Main          //Le Main doit se situer à la fin du programme
  			|Fonction Fonctions
 			;
 
-Fonction: TInt TId {ligne=0;
-										prof=0;
+Fonction: TInt TId {prof=1;
 										int indiceFun= rechercher_fun($2);
 										if (indiceFun!=-1)
 											printf("Fonction déjà déclarée !\n");
 										else{
-											ajouter_fun($2,0);
+											ajouter_fun($2,ligne,0);
 											int indiceFun= rechercher_fun($2);
 										}
-										fprintf(out, "\n%s :\n", $2);
-
-										//on crée une valeur en haut de la pile
-										ajouter_symbole("SavedEbp",1,0);
-										int adrSavedEpb= rechercher_symbole("SavedEbp");
-
-										fprintf(out,"\t%d : STORE ebp [ebp+%d]\n",ligne,adrSavedEpb); //on enregistre ebp en haut de la pile
-										fprintf(out,"\t%d : AFC ebp ebp+%d+1\n",ligne+1,adrSavedEpb); // on met ebp en haut de la pile
-
-										increment_ligne(2);
 									}
 					ToParenthesis Args {int nbArg=get_nbArg(indiceFun);
 	 				 										int i;
@@ -124,23 +118,19 @@ Fonction: TInt TId {ligne=0;
 	 															ajouter_symbole(nom,1,0);
 	 															int adrSymb= rechercher_symbole(nom);
 
-	 															fprintf(out,"\t%d : LOAD R0 [ebp-%d]\n",ligne,nbArg-i );//on va chercher le premier paramètre
-	 															fprintf(out,"\t%d : STORE ebp+%d R0\n",ligne+1,adrSymb);//on l'enregistre dans une adresse locale à la fonction comme une var normale
+	 															fprintf(out,"%d : LOAD R0 [ebp-%d]\n",ligne,nbArg+1-i );//on va chercher le premier paramètre
+	 															fprintf(out,"%d : STORE ebp+%d R0\n",ligne+1,adrSymb);//on l'enregistre dans une adresse locale à la fonction comme une var normale
 
 																increment_ligne(2);
+																increment_instr(prof,2);
+
 															}
 														}
 					TcParenthesis Body {
-															int nbArg_and_oldEbp=get_nbArg(indiceFun)+1; //le +1 correspond à l'espace pris par oldEbp
-															fprintf(out,"\t%d : AFC R1 %d\n",ligne,nbArg_and_oldEbp);//on enregistre le nombre de parmètre pour ensuite faire une soustraction
-															fprintf(out,"\t%d : SUB esp ebp R1\n",ligne+1 );//on rétablie esp=ebp-nbarg-1;
+															fprintf(out,"%d : JMP [ebp-1]\n",ligne);//on va saute à l'adresse de retour
 
-															fprintf(out,"\t%d : LOAD R0 [ebp-1]\n",ligne+2);//on va chercher l'ancien ebp
-															fprintf(out,"\t%d : MOV ebp R0\n",ligne+3);//on rétablie l'ancien ebp
-
-															fprintf(out,"\t%d : RET\n",ligne+4);//on revient à la routine précédente
-
-															increment_ligne(5);
+															increment_ligne(1);
+															increment_instr(prof,1);
 
 															retirer_symbole(0); //on vide la table des symboles
 														 }
@@ -148,16 +138,14 @@ Fonction: TInt TId {ligne=0;
 
 
 //TODO gestion des arguments du main ???
-Main : TInt TMain { ligne=0;
-										prof=0;
-									fprintf(out, "\nstart :\n");
-									fprintf(out, "\t%d : AFC ebp 0 \n",ligne);
-
+Main : TInt TMain {prof=0;
+									fermer_branche(prof);
+									fprintf(out, "\n");
+									fprintf(out, "%d : AFC ebp 0 \n",ligne);
 									increment_ligne(1);
+									increment_instr(prof,1);
 									}
 			 ToParenthesis Args TcParenthesis Body {retirer_symbole(0); //on vide la table des symboles
-				 																			fprintf(out, "\t%d : RET \n",ligne);
-																							increment_ligne(1);
 			 																				}
 			;
 
@@ -192,27 +180,26 @@ Instr : Decl
         ;
 
 Return : TReturn Exp {	int adrTmp= rechercher_symbole($2);
-												fprintf(out,"\t%d : LOAD eax [ebp+%d]\n",ligne, adrTmp);
+												fprintf(out,"%d : LOAD eax [ebp+%d]\n",ligne, adrTmp);
 												//TODO faire un JMP jusqu'à la fin de la fonction ou écrire les trucs de fins de fonctions ici
 												increment_ligne(1);
 												increment_instr(prof,1);
 											}
 
 
-Invoc: TId ToParenthesis Params TcParenthesis TSemicolon 	{ fprintf(out,"\t%d : CALL %s\n", ligne, $1);
+Invoc: TId ToParenthesis Params TcParenthesis TSemicolon 	{
+																				 int i=rechercher_fun($1);
+																				 int nbArg=get_nbArg(i);
+																				 int adrFun=get_adrDeb(i);
+																				 fprintf(out,"%d : AFC R0 %d\n", ligne, ligne+4);//on prépare la sauvegarde de l'adresse de retour
+																				 fprintf(out,"%d : STORE ebp+%d R0 \n", ligne+1, nbArg+1);// on enregistre l'adr de retour
+																				 fprintf(out,"%d : ADD ebp ebp %d \n", ligne+2, nbArg+2);//on met ebp en haut
+ 																			   fprintf(out,"%d : JMP %d \n", ligne+3, adrFun); //on jump dans la fonction
+																				 fprintf(out,"%d : SUB ebp ebp %d \n", ligne+4, nbArg+2);//on rétablie l'ancien ebp
+																				 increment_ligne(5);
+																				 increment_instr(prof,5);
 
-																				//on sauvegarde le contenu du registre de retour eax dans une variable nommée EAX
-																					int adrEAX= rechercher_symbole("EAX");
-																					if (adrEAX==-1){
-																						 ajouter_symbole("EAX",1,prof);
-																						 adrEAX=rechercher_symbole("EAX");
-																					 }
-																					 fprintf(out,"\t%d : STORE ebp+%d eax\n",ligne+1,adrEAX);
-
-																					 increment_ligne(2);
-																					 increment_instr(prof,2);
-																					 strcpy($$,"EAX");;
-			 																		}
+																			 }
       ;
 
 Params : /*epsilon*/
@@ -230,8 +217,8 @@ Param : Exp {
 						ajouter_symbole("arg",1,prof); // on rajoute un symbole en haut de la table des symboles pour obtenir le haut de la pile
 						int adrArg=rechercher_symbole("arg");
 
-						fprintf(out,"\t%d : LOAD R0 [ebp+%d]\n",ligne, adrTmp); //récupère la var
-						fprintf(out,"\t%d : STORE ebp+%d R0\n",ligne+1,adrArg); //on enregistre en haut de la pile pour la passage de la fonction
+						fprintf(out,"%d : LOAD R0 [ebp+%d]\n",ligne, adrTmp); //récupère la var
+						fprintf(out,"%d : STORE ebp+%d R0\n",ligne+1,adrArg); //on enregistre en haut de la pile pour la passage de la fonction
 
 						increment_ligne(2);
 						increment_instr(prof,2);
@@ -239,7 +226,7 @@ Param : Exp {
 					;
 
 If : TIf ToParenthesis Exp {	int adrSymb= rechercher_symbole($3);
-															fprintf(out,"\t%d : LOAD RZ %d\n",ligne, adrSymb);
+															fprintf(out,"%d : LOAD RZ %d\n",ligne, adrSymb);
 															increment_ligne(1);
 															increment_instr(prof,1);
 															printf("ligne : %d , prof : %d\n", ligne, prof );
@@ -254,8 +241,11 @@ If : TIf ToParenthesis Exp {	int adrSymb= rechercher_symbole($3);
 Else : 			{prof--;
 						fermer_branche(prof);
 						}
-    | TElse {ajouter_branche("JMP",ligne-1,1,prof);
-						 fprintf(out,"XMP                   \n");}
+    | TElse {ajouter_branche("JMP",ligne,1,prof);
+						 fprintf(out,"XMP                   \n");
+						 increment_ligne(1);
+						 increment_instr(prof,1);
+					 }
 		 	Body   {prof--;
 							fermer_branche(prof);
 				  		}
@@ -266,7 +256,7 @@ While : TWhile {char charnb[10];   //on commence le branchement ici qui nous per
 								ajouter_branche("JMPZ",ligne,1,prof);
 							}
 		 ToParenthesis Exp {int adrSymb= rechercher_symbole($4);
-													 fprintf(out,"\t%d : LOAD RZ %d\n",ligne, adrSymb);
+													 fprintf(out,"%d : LOAD RZ %d\n",ligne, adrSymb);
 													 fprintf(out,"XMP             \n");
 													 increment_ligne(2);
 													 increment_instr(prof,2);
@@ -276,7 +266,7 @@ While : TWhile {char charnb[10];   //on commence le branchement ici qui nous per
 		TcParenthesis Body {int adrDebWhile=get_adr_tab_branche(prof-1);
 														 increment_instr(prof,1);
 														 fermer_branche(prof-1);
-														 fprintf(out,"\t%d : JMP %d\n",ligne, adrDebWhile); //JMP jusqu'au debut du calcul de la condition
+														 fprintf(out,"%d : JMP %d\n",ligne, adrDebWhile); //JMP jusqu'au debut du calcul de la condition
 											    	 increment_ligne(1);
 														 prof --;
 														 sommet_while--;
@@ -289,7 +279,7 @@ While : TWhile {char charnb[10];   //on commence le branchement ici qui nous per
 Exp : TId {//création nouvelle variable temporaire
 					 char charnb[10];
 					 char tmp[20]="tmp";
-					 sprintf(charnb,"\t%d",sommet_tmp);
+					 sprintf(charnb,"%d",sommet_tmp);
 					 strcat(tmp, charnb);
 
 					 int adrTmp= rechercher_symbole(tmp);
@@ -301,8 +291,8 @@ Exp : TId {//création nouvelle variable temporaire
 
 					 int adrId=rechercher_symbole($1);
 					 //enregistrement du contenu du TId à l'adresse de la var tmp
-					 fprintf(out,"\t%d : LOAD R0 [ebp+%d]\n",ligne, adrId);
-			 		 fprintf(out,"\t%d : STORE ebp+%d R0\n",ligne+1,adrTmp);
+					 fprintf(out,"%d : LOAD R0 [ebp+%d]\n",ligne, adrId);
+			 		 fprintf(out,"%d : STORE ebp+%d R0\n",ligne+1,adrTmp);
 
 					 increment_ligne(2);
 					 increment_instr(prof,2);
@@ -311,7 +301,7 @@ Exp : TId {//création nouvelle variable temporaire
 | TNumber {	//création nouvelle variable temporaire
 					 char charnb[10];
 				   char tmp[20]="tmp";
-					 sprintf(charnb,"\t%d",sommet_tmp);
+					 sprintf(charnb,"%d",sommet_tmp);
 					 strcat(tmp, charnb);
 
 					 int adrTmp= rechercher_symbole(tmp);
@@ -321,8 +311,8 @@ Exp : TId {//création nouvelle variable temporaire
 				 		}
 						sommet_tmp++;
 					 //enregistrement de TNumber à l'adresse de la var tmp
-					 fprintf(out,"\t%d : AFC R0 %d\n",ligne, $1);
-		 			 fprintf(out,"\t%d : STORE ebp+%d R0\n",ligne+1,adrTmp);
+					 fprintf(out,"%d : AFC R0 %d\n",ligne, $1);
+		 			 fprintf(out,"%d : STORE ebp+%d R0\n",ligne+1,adrTmp);
 
 					 increment_ligne(2);
 					 increment_instr(prof,2);
@@ -349,8 +339,8 @@ Affect: TId TEqual Exp TSemicolon
 			initialiser_symbole(adrId);
 			int adrExp= rechercher_symbole($3);
 
-			fprintf(out,"\t%d : LOAD R0 [ebp+%d]\n",ligne, adrExp);
-			fprintf(out,"\t%d : STORE ebp+%d R0\n",ligne+1,adrId);
+			fprintf(out,"%d : LOAD R0 [ebp+%d]\n",ligne, adrExp);
+			fprintf(out,"%d : STORE ebp+%d R0\n",ligne+1,adrId);
 
 			increment_ligne(2);
 			increment_instr(prof,2);
@@ -367,8 +357,8 @@ Decl1 : TId {ajouter_symbole($1,0,prof);}
 										ajouter_symbole($1,1,prof);
 										int adrId=rechercher_symbole($1);
 										int adrExp= rechercher_symbole($3);
-										fprintf(out,"\t%d : LOAD R0 [ebp+%d]\n",ligne, adrExp);
-										fprintf(out,"\t%d : STORE ebp+%d R0\n",ligne+1,adrId);
+										fprintf(out,"%d : LOAD R0 [ebp+%d]\n",ligne, adrExp);
+										fprintf(out,"%d : STORE ebp+%d R0\n",ligne+1,adrId);
 										increment_ligne(2);
 										increment_instr(prof,2);
 
@@ -410,17 +400,12 @@ int main(void){
 
 		while (!eof && c!='X') { //correspond à une ligne laissée pour un jump
 			//printf("caractere :%c\n", c);
-			c=fgetc(out);
 			if (c==EOF)
 			eof=1;
 			else if (c=='\n'){
 				lig++;
-				c=fgetc(out);
-				if (c!='\t' && c!='X'){
-					lig=-1;
-				}
 			}
-
+			c=fgetc(out);
 		}
 
 		fseek(out,-2*sizeof(char), SEEK_CUR);
@@ -428,7 +413,7 @@ int main(void){
 		get_nom_tab_branche_with_indice(indice,nom);
 		nb_instr=get_nb_instr_tab_branche_with_indice(indice);
 
-		fprintf(out,"\n\t%d : %s %d", lig,nom, lig+nb_instr);
+		fprintf(out,"\n%d : %s %d", lig,nom, lig+nb_instr);
 		fflush(out);
 
 	}
